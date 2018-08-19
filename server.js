@@ -10,8 +10,9 @@ mongoose.Promise = global.Promise;
 // config.js is where we control constants for entire
 // app like PORT and DATABASE_URL
 const { PORT, DATABASE_URL } = require('./config');
-const { Salary } = require('./models/salaryModel')
-const { Projection } = require('./models/projectionModel')
+const { Salary } = require('./models/salary')
+const { Projection } = require('./models/projection')
+const { User } = require('./models/user')
 
 const app = express();
 app.use(express.json());
@@ -25,6 +26,23 @@ app.get("/", (req, res) => {
   res.status(200).sendFile(__dirname + "/public/index.html");
 });
 
+//====================
+//POST endpoints
+//====================
+app.post("/", (req, res) => {
+});
+
+//====================
+//PUT endpoints
+//====================
+app.put("/", (req, res) => {
+});
+
+//====================
+//DELETE endpoints
+//====================
+app.delete("/", (req, res) => {
+});
 
 
 //====================

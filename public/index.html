@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato|Permanent+Marker" rel="stylesheet">
     <!-- Icons -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" 
       integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" 
@@ -17,7 +17,10 @@
     <div class="wrapper">
  
        <header class="top">
-          <h1><a href="#">Winner Winner, Chicken Dinner</a></h1>
+          <a href="#">
+            <h1>Winner Winner</h1>
+            <h1>Chicken Dinner</h1>
+          </a>
        </header>
  
        <nav class="flex-nav">
@@ -34,16 +37,28 @@
                 <a href="#"><i class="fab fa-facebook-square"></i></a>
              </li>
              <li class="social">
-                <a href="#"><i class="fab fa-github-alt"></i></a>
-             </li>
-             <li class="social">
                 <a href="#"><i class="fab fa-instagram"></i></a>
              </li>
           </ul>
        </nav>
+
+       <section class="signup">
+          <h2>Sign up for Free</h2>
+           <form action="" class="signup">
+              <input type="text" placeholder="Your Name">
+              <input type="email" placeholder="Email Address">
+              <input type="submit" value="Sign up!" class="btn">
+           </form>
+        </section>
  
        <section class="hero">
-          <img src="https://images.unsplash.com/photo-1533979897165-55ab4743add8?ixlib=rb-0.3.5&s=2eac89905a87c3392bf7eea0d71a1777&auto=format&fit=crop&w=934&q=80">
+        <div class="news-buttons">
+          <button class="btn news-up" title="Previous story"><i class="fas fa-chevron-up"></i></button>
+          <div class="news-slider">
+            <img src="https://images.unsplash.com/photo-1533979897165-55ab4743add8?ixlib=rb-0.3.5&s=2eac89905a87c3392bf7eea0d71a1777&auto=format&fit=crop&w=934&q=80">
+          </div>
+          <button class="btn news-down" title="Next story"><i class="fas fa-chevron-down"></i></button>
+        </div>
        </section>
  
        <section class="details">
@@ -52,10 +67,12 @@
        </section>
  
        <section class="signup">
+         <h2>Get in on the action!</h2>
+         <h3>Sign up Today</h3>
           <form action="" class="signup">
              <input type="text" placeholder="Your Name">
              <input type="email" placeholder="Email Address">
-             <input type="submit" value="Sign me up!">
+             <input type="submit" value="Sign up!" class="btn">
           </form>
        </section>
  
@@ -68,9 +85,6 @@
              </li>
              <li class="social">
                 <a href="#"><i class="fab fa-facebook-square"></i></a>
-             </li>
-             <li class="social">
-                <a href="#"><i class="fab fa-github-alt"></i></a>
              </li>
              <li class="social">
                 <a href="#"><i class="fab fa-instagram"></i></a>
