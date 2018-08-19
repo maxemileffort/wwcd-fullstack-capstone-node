@@ -35,10 +35,27 @@ a:hover {
   display: none;
 }
 
+.underline {
+  text-decoration: underline;
+}
+
+.underline:hover {
+  color: crimson;
+}
+
+main {
+  display: flex;
+}
+
+.signup{}
+
+.hero{}
+
 img {
   width:100%;
   height: 500px;
   margin: 5px;
+  border-radius: 5px;
 }
 
 .wrapper {
@@ -130,7 +147,7 @@ section, footer {
   
 /* This is where the magic Happens */
 
-@media all and (max-width:500px) {
+@media all and (max-width:1000px) {
   
   .flex-nav li {
     flex-basis:100%;
