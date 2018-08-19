@@ -10,90 +10,29 @@ mongoose.Promise = global.Promise;
 // config.js is where we control constants for entire
 // app like PORT and DATABASE_URL
 const { PORT, DATABASE_URL } = require('./config');
-const { /*model export name here*/ } = require('./models')
+const { Salary } = require('./models/salaryModel')
+const { Projection } = require('./models/projectionModel')
 
 const app = express();
 app.use(express.json());
+app.use(express.static('public'));
 
-// GET requests to <schema name> 
-app.get('/', (req, res) => {
- //do stuff
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
-    });
-});
-
-// can also request by ID
-app.get('/:id', (req, res) => {
-  //do stuff
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
-    });
+//====================
+//GET endpoints
+//====================
+app.get("/", (req, res) => {
+  //serves landing page
+  res.status(200).sendFile(__dirname + "/public/index.html");
 });
 
 
-app.post('/', (req, res) => {
-  // *** rewrite requiredFields ***
-  const requiredFields = ['name', 'borough', 'cuisine'];
-  for (let i = 0; i < requiredFields.length; i++) {
-    const field = requiredFields[i];
-    if (!(field in req.body)) {
-      const message = `Missing \`${field}\` in request body`;
-      console.error(message);
-      return res.status(400).send(message);
-    }
-  }
 
-  //do stuff
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
-    });
-});
-
-
-app.put('/:id', (req, res) => {
-  // ensure that the id in the request path and the one in request body match
-  if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
-    const message = (
-      `Request path id (${req.params.id}) and request body id ` +
-      `(${req.body.id}) must match`);
-    console.error(message);
-    return res.status(400).json({ message: message });
-  }
-
-  // we only support a subset of fields being updateable.
-  // if the user sent over any of the updatableFields, we udpate those values
-  // in document
-  const toUpdate = {};
-  //*** rewrite updateableFields ***
-  const updateableFields = ['name', 'borough', 'cuisine', 'address'];
-
-  updateableFields.forEach(field => {
-    if (field in req.body) {
-      toUpdate[field] = req.body[field];
-    }
-  });
-
-  <model export name here>
-    // all key/value pairs in toUpdate will be updated -- that's what `$set` does
-    .findByIdAndUpdate(req.params.id, { $set: toUpdate })
-    .then(restaurant => res.status(204).end())
-    .catch(err => res.status(500).json({ message: 'Internal server error' }));
-});
-
-app.delete('/:id', (req, res) => {
-  <model export name here>
-    .findByIdAndRemove(req.params.id)
-    .then(restaurant => res.status(204).end())
-    .catch(err => res.status(500).json({ message: 'Internal server error' }));
-});
-
-// catch-all endpoint if client makes request to non-existent endpoint
-app.use('*', function (req, res) {
-  res.status(404).json({ message: 'Not Found' });
+//====================
+//Catchall endpoint
+//====================
+app.get('/*', function (req, res) {
+  let message = "Page not found."
+  res.status(404).send(message);
 });
 
 // closeServer needs access to a server object, but that only

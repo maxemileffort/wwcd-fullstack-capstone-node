@@ -4,15 +4,15 @@ const mongoose = require('mongoose');
 
 // this is our schema to represent a player salary with some stats
 const salarySchema = mongoose.Schema({
-  position: {type: String, required: true},
-  nameAndId: {type: String, required: true},
-  name: {type: String, required: true},
-  Id: {type: String},
-  rosterPosition: {},
-  salary: {},
-  gameInfo: {},
-  teamAbbrev: {},
-  avgPPG: {},
+  position: {type: String},
+  nameAndId: {type: String},
+  name: {type: String},
+  Id: {type: Number},
+  rosterPosition: {type: String},
+  salary: {type: Number},
+  gameInfo: {type: String},
+  teamAbbrev: {type: String},
+  avgPPG: {type: Number},
 });
 
 
