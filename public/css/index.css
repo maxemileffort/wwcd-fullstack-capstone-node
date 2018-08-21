@@ -69,9 +69,8 @@ main {
   display: flex;
 }
 
-.signup-main_unflex{
+.main--unflex{
   display: block;
-  /* list-style: none; */
 }
 
 form{
@@ -132,6 +131,19 @@ section, footer {
   margin:20px 0;
   color:white;
   font-weight: 100;
+}
+
+.admin__drag-and-drop--format{
+  height: 250px;
+  width: 250px;
+  margin: 0 auto 1% auto;
+  border: dashed grey 5px;
+}
+
+.admin__social-blast--format{
+  height: 400px;
+  width: 400px;
+  margin: 0 auto 1% auto;
 }
 
 .btn {
