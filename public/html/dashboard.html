@@ -21,10 +21,8 @@
             <ul>
                 <li><a href="#">Home</a></li>
                 <li><a href="#">News</a></li>
-                <li><a href="#">Your Lineups</a></li>
-                <li><a href="#">Sign Up</a></li>
-                <li><a href="#">About Us</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a href="#">Stats</a></li>
+                <li><a href="#">Logout</a></li>
                 <li class="social">
                     <a href="#"><i class="fab fa-twitter"></i></a>
                 </li>
@@ -37,9 +35,40 @@
             </ul>
         </nav>
         
-        <main class="main--unflex">
+        <main class="">
+            <section>
+                <label for="">Position:
+                    <select name="" id="">
+                        <option value="">QB</option>
+                        <option value="">RB</option>
+                        <option value="">WR</option>
+                        <option value="">K</option>
+                        <option value="">DST</option>
+                        <option value="">FLEX</option>
+                    </select>
+                </label>
+                
+                <div>
+                    <p>Rendered players based on select option and maybe some checkboxes for stats</p>
+                </div>
+            </section>
+            
+            <section>
+                <div>
+                    <p>Optimal Draft Kings Lineup</p>
+                    <textarea name="" id="" cols="50" rows="10" placeholder="area representation for lineup"></textarea>
+                </div>
+                <div>
+                    <p>Optimal FanDuel Lineup</p>
+                    <textarea name="" id="" cols="50" rows="10" placeholder="area representation for lineup"></textarea>
+                </div>
+            </section>
             
         </main>
+
+        <section>
+            <p>Area for saved lineups</p>
+        </section>
     </div>
 </body>
 </html>
