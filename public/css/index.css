@@ -14,7 +14,20 @@ body {
   background-image: linear-gradient(270deg, #777 0%, #222 50%, #777 100%);
 }
 
-a {
+header {
+  background-image: 
+  	linear-gradient(
+    rgba(0,0,0,0.5),
+    rgba(0,0,0,0.5)
+  	),
+  	url('../img/ben-hershey-417746-unsplash.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 0;
+  height: 800px;
+}
+
+header p, a {
   color:white;
   font-weight: 100;
   letter-spacing: 2px;
@@ -25,6 +38,15 @@ a {
   width: 100%;
   text-align: center;
   transition:all 0.5s;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+}
+
+.tagline{
+	margin-top: 450px;
 }
 
 a:hover {
@@ -47,9 +69,22 @@ main {
   display: flex;
 }
 
-.signup{
+.signup-main_unflex{
   display: block;
+  /* list-style: none; */
+}
 
+form{
+  display: flex;
+  flex-direction: column;
+}
+
+.benefits ul{
+  list-style: none;
+}
+
+.signup{
+	margin: 100px auto 20px auto;
 }
 
 .hero{
@@ -114,12 +149,6 @@ section, footer {
 
 .news-buttons {
   z-index: 5;
-}
-
-.news-up {
-}
-
-.news-down {
 }
 
 /* Flex Container */

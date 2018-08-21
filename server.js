@@ -23,7 +23,7 @@ app.use(express.static('public'));
 //====================
 app.get("/", (req, res) => {
   //serves landing page
-  res.status(200).sendFile(__dirname + "/public/index.html");
+  res.status(200).sendFile(__dirname + "/public/html/index.html");
 });
 
 //====================
