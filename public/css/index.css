@@ -52,6 +52,7 @@ header p, a {
 
 a:hover {
   background:rgba(0,0,0,0.3);
+  color: crimson;
 }
 
 .toggleNav {
