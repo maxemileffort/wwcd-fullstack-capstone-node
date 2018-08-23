@@ -12,6 +12,7 @@ body {
   font-family: sans-serif;
   margin: 0;
   background-image: linear-gradient(270deg, #777 0%, #222 50%, #777 100%);
+  color:white;
 }
 
 header {
@@ -69,6 +70,10 @@ main {
   display: flex;
 }
 
+.row{
+  display: flex;
+}
+
 .main--unflex{
   display: block;
 }
@@ -108,6 +113,12 @@ form{
   background-position: 0;
 }
 
+.card{
+  height: auto;
+  width: 30%;
+  margin: 1% auto;
+}
+
 .wrapper {
   max-width: 1000px;
   margin: 0 auto;
@@ -135,14 +146,14 @@ section, footer {
 
 .admin__drag-and-drop--format{
   height: 250px;
-  width: 250px;
+  width: 100%;
   margin: 0 auto 1% auto;
   border: dashed grey 5px;
 }
 
 .admin__social-blast--format{
   height: 400px;
-  width: 400px;
+  width: 100%;
   margin: 0 auto 1% auto;
 }
 
