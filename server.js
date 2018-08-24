@@ -1,7 +1,23 @@
 'use strict';
 
-const express = require('express');
-const mongoose = require('mongoose');
+// R script debugger
+(function() {
+  var childProcess = require("child_process");
+  var oldSpawn = childProcess.spawn;
+  function mySpawn() {
+    console.log('spawn called');
+    console.log(arguments);
+    var result = oldSpawn.apply(this, arguments);
+    return result;
+  }
+  childProcess.spawn = mySpawn;
+})();
+//end debugger
+
+const express   = require('express');
+const mongoose  = require('mongoose');
+const rscript   = require('./custom_modules/node-run-r');
+const async     = require('async');
 
 // Mongoose internally uses a promise-like object,
 // but its better to make Mongoose use built in es6 promises
@@ -18,6 +34,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
+const queue = async.queue;
 //====================
 //GET endpoints
 //====================
@@ -31,6 +48,64 @@ app.get("/", (req, res) => {
 //====================
 app.post("/", (req, res) => {
 });
+
+app.post("/get-stats", (req, res)=>{
+  let season = req.body.season;
+  let week = req.body.week;
+  const period = {
+    season: 2018,
+    week: 0
+  };
+  
+  //1) added Rscript to path
+  //2) granted write permissions to R folder
+  //3) added mirror repo from example startup for R profiles to .Rprofile
+    
+  async.parallel([
+    function(callback) {
+      rscript.call('./scripts/script-scrape-QBRBprojections.R', period)
+      .then(table1=>{
+        callback(null, table1);
+      }).catch(err => {
+          console.log('err = ', err);
+          callback(null, err);
+          res.status(500).json(err)
+        });
+    },
+    function(callback) {
+      rscript.call('./scripts/script-scrape-WRTEprojections.R', period)
+      .then(table2=>{
+        callback(null, table2);
+      }).catch(err => {
+        console.log('err = ', err);
+        callback(null, err);
+        res.status(500).json(err)
+      });
+    },
+    function(callback) {
+      rscript.call('./scripts/script-scrape-KDSTprojections.R', period)
+      .then(table3=>{
+        callback(null, table3);
+      }).catch(err => {
+        console.log('err = ', err);
+        callback(null, err);
+        res.status(500).json(err)
+      });
+    }
+  ],
+  // optional callback
+  function(err, results) {
+    if (err){
+      console.log('err = ', err);
+      return res.status(500).json(err)
+    } else {
+      console.log(results);
+      return res.status(200).json(results)
+    }
+  });
+  
+  
+})
 
 //====================
 //PUT endpoints
@@ -60,7 +135,7 @@ let server;
 
 // this function connects to our database, then starts the server
 function runServer(databaseUrl, port = PORT) {
-
+  
   return new Promise((resolve, reject) => {
     mongoose.connect(databaseUrl, err => {
       if (err) {
@@ -70,10 +145,10 @@ function runServer(databaseUrl, port = PORT) {
         console.log(`Your app is listening on port ${port}`);
         resolve();
       })
-        .on('error', err => {
-          mongoose.disconnect();
-          reject(err);
-        });
+      .on('error', err => {
+        mongoose.disconnect();
+        reject(err);
+      });
     });
   });
 }

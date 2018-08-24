@@ -49,14 +49,15 @@
         </li>
       </ul>
     </nav>
+    <div class="results"></div>
     <h2>Landing Page</h2>
     <main>
-      <section class="signup">
+      <section class="">
         <h2>Sign up for Free</h2>
         <p>Tired of those rando jabronies beating you in the double-ups in DFS?</p>
         <p>How about when your sleeper never even gets out of bed? Grinds the gears, am I right?</p>
         <p>Maybe you just need an extra edge, to go to the next winning tier of the tournament plays?</p>
-        <div class="signup">
+        <div class="">
           <a href="#">Join Team WWCD: <span class="underline">Signup</span></a>
           <a href="#">Already have an account? <span class="underline">Login</span></a>
         </div>
@@ -84,13 +85,13 @@
       </section>
     </main>
     
-    <section class="signup">
+    <section class="">
       <h2>Get in on the action!</h2>
       <h3>Sign up Today</h3>
-      <form action="" class="signup">
-        <input type="text" placeholder="Your Name">
-        <input type="email" placeholder="Email Address">
-        <input type="submit" value="Sign up!" class="btn">
+      <form action="" class="" method="POST">
+        <input id="landing-username" type="text" placeholder="Username">
+        <input id="landing-email" type="email" placeholder="Email Address">
+        <input id="landing-submit" type="submit" value="Sign up!" class="btn">
       </form>
     </section>
     <!-- end landing page -->
@@ -98,14 +99,14 @@
     <!-- signup page -->
     <h2>Signup/Login Page</h2>
     <main class="main--unflex">
-      <section class="signup">
+      <section class="">
         <h3>Time to Join the Winning Team</h3>
         <form action="" method="post">
-          <input type="text" name="userame" id="username" placeholder="Username">
-          <input type="email" name="email" id="email" placeholder="Email">
-          <input type="password" name="password1" id="password1" placeholder="Password">
-          <input type="password" name="password2" id="password2" placeholder="Retype Password">
-          <input type="submit" value="Sign up" class="btn">
+          <input id="reg-username" type="text" name="userame" placeholder="Username">
+          <input id="reg-email" type="email" name="email" placeholder="Email">
+          <input id="reg-password1" type="password" name="password1"  placeholder="Password">
+          <input id="reg-password2" type="password" name="password2" placeholder="Retype Password">
+          <input id="reg-submit" type="submit" value="Sign up" class="btn">
         </form>
         
       </section>
@@ -118,12 +119,12 @@
           <li>Pro members get unlimited numbers of lineups to compare!</li>
         </ul>
       </section>
-      <section class="signup">
+      <section class="">
           <h3>Welcome Back</h3>
-          <form action="" method="post">
-            <input type="text" name="userame" id="username" placeholder="Email">
-            <input type="password" name="password1" id="password1" placeholder="Password">
-            <input type="submit" value="Login" class="btn">
+          <form action="" method="POST">
+              <input id="login-email" type="email" name="email" placeholder="Email">
+              <input id="login-password" type="password" name="password"  placeholder="Password">
+              <input id="login-submit" type="submit" value="Login" class="btn">
           </form>
       </section>
     </main>
