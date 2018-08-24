@@ -53,8 +53,8 @@ app.post("/get-stats", (req, res)=>{
   let season = req.body.season;
   let week = req.body.week;
   const period = {
-    season: 2018,
-    week: 0
+    season,
+    week
   };
   
   //1) added Rscript to path
