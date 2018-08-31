@@ -77,10 +77,15 @@ app.post("/send-stats-to-db", (req, res)=>{
         .fromFile(path)
         .then((jsonObj)=>{
           //console.log(jsonObj);
-          Projection.insertOne({
+          Projection.create({
             players: jsonObj,
             season,
             week
+          }, (err)=>{
+            if(err){
+              console.log(err)
+              return res.status(500).json({err})
+            }
           });
           return res.status(200).json({msg: "Finished updating DB"})
         })
