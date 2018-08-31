@@ -18,6 +18,8 @@ const express   = require('express');
 const mongoose  = require('mongoose');
 const rscript   = require('./custom_modules/node-run-r');
 const async     = require('async');
+const fs        = require('fs');
+const csv       =require('csvtojson')
 
 // Mongoose internally uses a promise-like object,
 // but its better to make Mongoose use built in es6 promises
@@ -52,57 +54,72 @@ app.post("/", (req, res) => {
 app.post("/get-stats", (req, res)=>{
   let season = req.body.season;
   let week = req.body.week;
-  const period = {
-    season,
-    week
-  };
+  let path = `/usr/local/src/data/${season}season-week${week}-projections.csv`
+  console.log("Season:", season)
+  console.log("Week:", week)
+
+  if (fs.existsSync(path)) {
+    console.log("File exists")
+    csv()
+      .fromFile(path)
+      .then((jsonObj)=>{
+        //console.log(jsonObj);
+        return res.status(200).json(jsonObj)  
+      }).catch(err=>{
+        return res.status(500).json({msg: 'Something went wrong retrieving player stats.'})
+      })
+    } else {
+      console.log("No stats for that period")
+      return res.status(200).json({msg: 'No stats for that period'})
+
+  }
   
   //1) added Rscript to path
   //2) granted write permissions to R folder
   //3) added mirror repo from example startup for R profiles to .Rprofile
     
-  async.parallel([
-    function(callback) {
-      rscript.call('./scripts/script-scrape-QBRBprojections.R', period)
-      .then(table1=>{
-        callback(null, table1);
-      }).catch(err => {
-          console.log('err = ', err);
-          callback(null, err);
-          res.status(500).json(err)
-        });
-    },
-    function(callback) {
-      rscript.call('./scripts/script-scrape-WRTEprojections.R', period)
-      .then(table2=>{
-        callback(null, table2);
-      }).catch(err => {
-        console.log('err = ', err);
-        callback(null, err);
-        res.status(500).json(err)
-      });
-    },
-    function(callback) {
-      rscript.call('./scripts/script-scrape-KDSTprojections.R', period)
-      .then(table3=>{
-        callback(null, table3);
-      }).catch(err => {
-        console.log('err = ', err);
-        callback(null, err);
-        res.status(500).json(err)
-      });
-    }
-  ],
-  // optional callback
-  function(err, results) {
-    if (err){
-      console.log('err = ', err);
-      return res.status(500).json(err)
-    } else {
-      console.log(results);
-      return res.status(200).json(results)
-    }
-  });
+  // async.parallel([
+  //   function(callback) {
+  //     rscript.call('./scripts/script-scrape-QBRBprojections.R', period)
+  //     .then(table1=>{
+  //       callback(null, table1);
+  //     }).catch(err => {
+  //         console.log('err = ', err);
+  //         callback(null, err);
+  //         res.status(500).json(err)
+  //       });
+  //   },
+  //   function(callback) {
+  //     rscript.call('./scripts/script-scrape-WRTEprojections.R', period)
+  //     .then(table2=>{
+  //       callback(null, table2);
+  //     }).catch(err => {
+  //       console.log('err = ', err);
+  //       callback(null, err);
+  //       res.status(500).json(err)
+  //     });
+  //   },
+  //   function(callback) {
+  //     rscript.call('./scripts/script-scrape-KDSTprojections.R', period)
+  //     .then(table3=>{
+  //       callback(null, table3);
+  //     }).catch(err => {
+  //       console.log('err = ', err);
+  //       callback(null, err);
+  //       res.status(500).json(err)
+  //     });
+  //   }
+  // ],
+  // // optional callback
+  // function(err, results) {
+  //   if (err){
+  //     console.log('err = ', err);
+  //     return res.status(500).json(err)
+  //   } else {
+  //     console.log(results);
+  //     return res.status(200).json(results)
+  //   }
+  // });
   
   
 })

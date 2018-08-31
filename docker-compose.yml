@@ -1,0 +1,44 @@
+version: '3.4'
+services:
+  scripts:
+    build:
+      context: ./
+      dockerfile: Dockerfile.rscripts
+    volumes:
+      - ./data:/usr/local/src/data
+  web:
+    build:
+      context: ./
+      dockerfile: Dockerfile.web
+    depends_on:
+      - scripts
+    volumes:
+      - ./data:/usr/src/app/data
+    ports:
+      - "80:80"
+      - "9229:9229"
+      - "9230:9230"
+    stdin_open: true
+    tty: true
+
+
+#had to delete these next files from the file 
+#structure in order to try multi-stage build
+#didn't want to lose them though
+
+#Dockerfie.rscripts
+# FROM rocker/tidyverse:latest as scripter
+# RUN mkdir /usr/local/src/data
+# WORKDIR /usr/local/src/myscripts
+# COPY ./scripts /usr/local/src/myscripts
+# CMD ["Rscript", "script-scrape-ALLPOSprojections.R"]
+
+#Dockerfile.web
+# FROM node:8 as backend
+# WORKDIR /usr/src/app
+# COPY . ./
+# ARG PORT=80
+# ENV PORT $PORT
+# EXPOSE $PORT 9229 9230
+# RUN npm install
+# CMD ["npm", "start"]
