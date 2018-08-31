@@ -42,8 +42,10 @@ const queue = async.queue;
 //====================
 app.get("/", (req, res) => {
   //serves landing page
-  res.status(200).sendFile(__dirname + "/public/html/index.html");
+  return res.status(200).sendFile(__dirname + "/public/html/index.html");
 });
+
+
 
 //====================
 //POST endpoints
@@ -51,78 +53,54 @@ app.get("/", (req, res) => {
 app.post("/", (req, res) => {
 });
 
-app.post("/get-stats", (req, res)=>{
+app.post("/send-stats-to-db", (req, res)=>{
+  //grab paylod
   let season = req.body.season;
   let week = req.body.week;
+  console.log("Season:" + season)
+  console.log("Week:" + week)
+  //regular season always ends at week 17, and with the way
+  //loops work, the end is always 18
+  let end = 18;
   let path = `/usr/local/src/data/${season}season-week${week}-projections.csv`
-  console.log("Season:", season)
-  console.log("Week:", week)
-
-  if (fs.existsSync(path)) {
-    console.log("File exists")
-    csv()
-      .fromFile(path)
-      .then((jsonObj)=>{
-        //console.log(jsonObj);
-        return res.status(200).json(jsonObj)  
-      }).catch(err=>{
-        return res.status(500).json({msg: 'Something went wrong retrieving player stats.'})
-      })
-    } else {
-      console.log("No stats for that period")
-      return res.status(200).json({msg: 'No stats for that period'})
-
-  }
   
-  //1) added Rscript to path
-  //2) granted write permissions to R folder
-  //3) added mirror repo from example startup for R profiles to .Rprofile
-    
-  // async.parallel([
-  //   function(callback) {
-  //     rscript.call('./scripts/script-scrape-QBRBprojections.R', period)
-  //     .then(table1=>{
-  //       callback(null, table1);
-  //     }).catch(err => {
-  //         console.log('err = ', err);
-  //         callback(null, err);
-  //         res.status(500).json(err)
-  //       });
-  //   },
-  //   function(callback) {
-  //     rscript.call('./scripts/script-scrape-WRTEprojections.R', period)
-  //     .then(table2=>{
-  //       callback(null, table2);
-  //     }).catch(err => {
-  //       console.log('err = ', err);
-  //       callback(null, err);
-  //       res.status(500).json(err)
-  //     });
-  //   },
-  //   function(callback) {
-  //     rscript.call('./scripts/script-scrape-KDSTprojections.R', period)
-  //     .then(table3=>{
-  //       callback(null, table3);
-  //     }).catch(err => {
-  //       console.log('err = ', err);
-  //       callback(null, err);
-  //       res.status(500).json(err)
-  //     });
-  //   }
-  // ],
-  // // optional callback
-  // function(err, results) {
-  //   if (err){
-  //     console.log('err = ', err);
-  //     return res.status(500).json(err)
-  //   } else {
-  //     console.log(results);
-  //     return res.status(200).json(results)
-  //   }
-  // });
-  
-  
+  //first check to see if there is one already so we don't duplicate data
+  Projection
+  .findOne({season: season, week: week})
+  .then(result=>{
+    //if there isn't one already, then add it
+    //after converting csv value
+    if (result === null){ //if we can't find an entry
+      if (fs.existsSync(path)) { //check to see if there's a scrape, and add it if it exists
+        console.log("File exists")
+        csv()
+        .fromFile(path)
+        .then((jsonObj)=>{
+          //console.log(jsonObj);
+          Projection.insertOne({
+            players: jsonObj,
+            season,
+            week
+          });
+          return res.status(200).json({msg: "Finished updating DB"})
+        })
+        .catch(err=>{
+          return res.status(500).json({msg: 'Something went wrong retrieving player stats.', err})
+        })
+      }
+      else { // if there's no entry but also no scrape
+        return res.status(200).json({msg: `No scrape for season - ${season}, week - ${week}.`})
+      }
+    } else { //if there is an entry
+      return res.status(200).json({msg: `Data for season - ${season}, week - ${week} already exists`})
+    } 
+  })
+  .catch(err=>{
+    return res.status(500).json({msg: 'Something went wrong retrieving player stats.', err})
+  })
 })
+
+
 
 //====================
 //PUT endpoints

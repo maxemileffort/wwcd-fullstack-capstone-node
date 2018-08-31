@@ -11,11 +11,10 @@ function getStats(season, week){
     
     $.ajax({
         type: 'POST',
-        url: '/get-stats',
+        url: '/send-stats-to-db',
         dataType: 'json',
         data: JSON.stringify(period),
         contentType: 'application/json',
-        timeout: 0, //server response comes at 2 min 10 sec, default timeout is 2 min
         beforeSend: function(){
             $('.results').html(`<p>Retrieving projections...</p>`)
         }

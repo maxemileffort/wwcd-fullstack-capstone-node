@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 
 // this is our schema to represent scraped projections
 const projectionSchema = mongoose.Schema({
+  season: {type: Number},
+  week: {type: Number},
+  players: {
     firstName: {type: String, required: true},
     lastName: {type: String, required: true},
     team: {type: String, required: true},
@@ -29,8 +32,10 @@ const projectionSchema = mongoose.Schema({
     ecr: {type: Number},
     risk: {type: Number},
     adp: {type: Number},
-    adpDiff: {type: Number},
-  });
+    adpDiff: {type: Number}
+  }
+  
+});
   
   
   // restaurantSchema.methods.serialize = function() {
