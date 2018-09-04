@@ -11,19 +11,6 @@ const projectionSchema = mongoose.Schema({
 });
   
   
-  // restaurantSchema.methods.serialize = function() {
-  
-  //   return {
-  //     id: this._id,
-  //     name: this.name,
-  //     cuisine: this.cuisine,
-  //     borough: this.borough,
-  //     grade: this.grade,
-  //     address: this.addressString
-  //   };
-  // }
-  
-  
-  const Projection = mongoose.model('Projection', projectionSchema);
+const Projection = mongoose.model('Projection', projectionSchema);
 
-  module.exports = {Projection}
+module.exports = {Projection}

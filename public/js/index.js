@@ -3,7 +3,7 @@
 // Function Declarations
 //=======================
 
-function getStats(season, week){
+function sendStatsToDb(season, week){
     let period = {
         season,
         week
@@ -22,7 +22,7 @@ function getStats(season, week){
     //if call succeeds
     .done(function (result) {
         console.log(result);
-        $('.results').html(`<p>Finished updating DB.</p>`)
+        $('.results').html(`<p>Finished updating DB.</p><p>${result.msg}</p>`)
     })
     //if the call fails
     .fail(function (jqXHR, error, errorThrown) {
@@ -49,5 +49,5 @@ $('.toggleNav').on('click', function() {
 $('.admin-submit').on('click', function(){
     let season = $('#season').val()
     let week = $('#week').val()
-    getStats(season, week)
+    sendStatsToDb(season, week)
 })
