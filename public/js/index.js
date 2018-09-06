@@ -84,8 +84,8 @@ $('#db-update').on('submit', function(e){
         $('.results').html(`<p>All fields required</p>`);
         return false;
     } else {
-       // sendStatsToDb(season, week);
-        sendSalariesToDb(file);
+       sendStatsToDb(season, week);
+       sendSalariesToDb(file);
     }
     e.stopPropagation();
 })

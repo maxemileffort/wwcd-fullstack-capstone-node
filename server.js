@@ -147,8 +147,6 @@ app.post("/send-stats-to-db/", (req, res)=>{
 
 // area where admin updates salaries every week
 app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
-  season = 2018;
-  week = 0;
   const csvFile = req.file.buffer.toString();
   const rows = csvFile.split('\n');
   let data = [];
