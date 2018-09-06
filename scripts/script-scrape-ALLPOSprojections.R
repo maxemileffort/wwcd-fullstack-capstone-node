@@ -5,36 +5,27 @@ library("ffanalytics")
 # these are the variables for the time period to scrape
 season <- 2018
 week <- 0
-end <- 1
 
 # while loop to scrape from beginning to end of season
-while (week < end){
-    print("Season:")
-    print(season)
-    print("Week:")
-    print(week)
-    print("End:")
-    print(end)
-    # proprietary scrape from the guys at FantasyFootballAnalytics.net
-    my_scrape <- scrape_data(src = c("CBS", "ESPN", "Yahoo"),
-                        pos = c("QB", "RB", "WR", "TE", "K", "DST"), 
-                        season = season, week = week)
-    
-        my_projections <- projections_table(my_scrape)
+print("Season:")
+print(season)
+print("Week:")
+print(week)
+# proprietary scrape from the guys at FantasyFootballAnalytics.net
+my_scrape <- scrape_data(src = c("CBS", "ESPN", "Yahoo"),
+                pos = c("QB", "RB", "WR", "TE", "DST"), 
+                season = season, week = week)
 
-        my_projections <- my_projections %>% add_ecr() %>% add_risk() %>%
-                    add_adp() %>% add_aav()
+my_projections <- projections_table(my_scrape)
 
-        my_projections <- my_projections %>% add_player_info()
+my_projections <- my_projections %>% add_ecr() %>% add_risk() %>%
+  add_adp() %>% add_aav()
 
-        # creates a file with season and week in the name
-        file_name = paste(season, "season-week", week, "-projections.csv", sep = "")
-        write.csv(my_projections, file=file.path("/usr/local/src/data", file_name), row.names=FALSE)
+my_projections <- my_projections %>% add_player_info()
 
-        week = week +1
+# creates a file with season and week in the name
+file_name = paste(season, "season-week", week, "-projections.csv", sep = "")
+write.csv(my_projections, file=file.path("/usr/local/src/data", file_name), row.names=FALSE)
 
-    }
 
-    
-}
 

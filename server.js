@@ -4,7 +4,9 @@ const express   = require('express');
 const mongoose  = require('mongoose');
 const fs        = require('fs');
 const csv       = require('csvtojson');
+const Excel     = require('exceljs');
 const bcrypt    = require('bcrypt');
+const multer    = require('multer');
 
 mongoose.Promise = global.Promise;
 
@@ -14,6 +16,7 @@ const { Projection } = require('./models/projection');
 const { User } = require('./models/user');
 
 const app = express();
+const upload = multer();
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -76,20 +79,25 @@ app.get("/get-salaries", (req, res)=>{
   .catch(err=>{
     return res.status(500).json({msg: 'Something went wrong retrieving player salaries.', err})
   })
-
+  
 });
 
 
 //====================
 //POST endpoints
 //====================
+// needed to abstract season and week away from salaries endpoint
+// in order to process data type from ajax call differently
+let season, week;
+
 // area where admin updates projections every week
 app.post("/send-stats-to-db/", (req, res)=>{
   //grab paylod
-  let season = req.body.season;
-  let week = req.body.week;
-  console.log("Season:" + season)
-  console.log("Week:" + week)
+  season = req.body.season;
+  week = req.body.week;
+  console.log("Projections:")
+  console.log("   Season:" + season)
+  console.log("   Week:" + week)
   //regular season always ends at week 17, and with the way
   //loops work, the end variable is always 18
   // let end = 18; currently not implemented, 
@@ -107,10 +115,10 @@ app.post("/send-stats-to-db/", (req, res)=>{
     console.log("File exists")
     csv()
     .fromFile(path)
-    .then((jsonObj)=>{
+    .then((json)=>{
       //console.log(jsonObj);
       Projection.create({
-        players: jsonObj,
+        players: json,
         season,
         week
       }, (err)=>{
@@ -119,7 +127,7 @@ app.post("/send-stats-to-db/", (req, res)=>{
           return res.status(500).json({err})
         }
       });
-      return res.status(200).json({msg: "Finished updating DB"})
+      return res.status(200).json({msg: "Finished updating projectiosn in DB"})
     })
     .catch(err=>{
       return res.status(500).json({msg: 'Something went wrong retrieving player stats.', err})
@@ -138,27 +146,66 @@ app.post("/send-stats-to-db/", (req, res)=>{
 })
 
 // area where admin updates salaries every week
-app.post("/send-salaries-to-db/", (req, res)=>{
-  //grab paylod
-  let season = req.body.season;
-  let week = req.body.week;
-  let salaries = req.body.salaries;  
-  //first check to see if there is an entry already so we don't duplicate data
+app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
+  season = 2018;
+  week = 0;
+  const csvFile = req.file.buffer.toString();
+  const rows = csvFile.split('\n');
+  let data = [];
+  console.log("here")
+  for (let row of rows) {
+    const columns = row.replace(/"\r/g, '').split(',');
+    //console.log(columns);
+    data.push(columns)
+  }
+  let keys = data[0]; // array of strings, where each string is a key
+  let allPlayers = data.splice(1); // array of arrays, where each nested array represents a player
+  let combinedArray = []; // array that holds items prior to being reduced to processedArray
+  let item = [] //intermediary array to correctly structure data
+  let processedArray = [] // cleaned and structured array of objects
+  for (let i=0; i<allPlayers.length; i++){
+    let player = allPlayers[i];
+    for(let j=0; j<player.length; j++){
+      item = []
+      item.push(keys[j], player[j])
+      combinedArray.push(item)
+    }
+    item = combinedArray.reduce(function(prev,curr){prev[curr[0]]=curr[1];return prev;},{})
+    processedArray.push(item);
+  }
+  
+  console.log(180);
   Salary
   .findOne({season: season, week: week})
   .then(result=>{
-    //if there isn't one already, then add it
-    if (result === null){ //if we can't find an entry
+    console.log(184);
+    if (result === null){ // if there isn't already an entry in the db
+    console.log(186);
     Salary.create({
-      salaries,
-      season,
-      week
-    })};
-    return res.status(200).json({msg: "Finished updating DB"})
-  })
-  .catch(err=>{
-    return res.status(500).json({msg: 'Something went wrong saving player salaries', err})
-  })
+      salaries: processedArray,
+      season: season,
+      week: week
+    }, 
+    (err)=>{
+      console.log(192);
+      if(err){
+        console.log(195);
+        console.log(err)
+        return res.status(500).json({err})
+      }
+    })
+  } else {
+    console.log(204);
+    return false // means that we found an entry matching season and week already
+  }
+})
+.catch(err=>{
+  console.log(201);
+  return res.status(500).json({err, msg: 'Something went wrong searching player salaries.'})
+})
+
+return res.status(200).json({msg: "Finished updating salaries in DB"}) // on success
+
 })
 
 // add user

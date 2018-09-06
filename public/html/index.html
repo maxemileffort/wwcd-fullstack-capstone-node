@@ -119,12 +119,12 @@
         </ul>
       </section>
       <section class="">
-          <h3>Welcome Back</h3>
-          <form action="" method="POST">
-              <input id="login-email" type="email" name="email" placeholder="Email">
-              <input id="login-password" type="password" name="password"  placeholder="Password">
-              <input id="login-submit" type="submit" value="Login" class="btn">
-          </form>
+        <h3>Welcome Back</h3>
+        <form action="" method="POST">
+          <input id="login-email" type="email" name="email" placeholder="Email">
+          <input id="login-password" type="password" name="password"  placeholder="Password">
+          <input id="login-submit" type="submit" value="Login" class="btn">
+        </form>
       </section>
     </main>
     <hr>
@@ -169,14 +169,21 @@
     <!-- admin page -->
     <h2>Admin Page</h2>
     <main class="main--unflex">
-      <section class="admin__drag-and-drop--format">
-        <p>Drag and drop for salaries</p>
-      </section>
-      <section>
-        <input type="number" name="season" id="season" placeholder="season" value='2018'/>
-        <input type="number" name="week" id="week" placeholder="week" value='0'/>
-        <button class="btn admin-submit">Populate DB</button>
-      </section>
+      <form action="#" method="post" id="db-update">
+        <p>Download <a class="link-no-box" href="https://www.draftkings.com/lineup/upload" target="_blank">Salaries</a></p>
+        <section>
+          <div class="file-chooser">
+            <h4>Upload Salaries Here</h4>
+            <input type="file" name="salaries" id="salaries-file" accept=".csv"/>
+          </div>
+          <div class="projections-tool">
+            <h4>Projections</h4>
+            <input type="number" name="season" id="season" placeholder="season" value='2018'/>
+            <input type="number" name="week" id="week" placeholder="week" value='0'/>
+            <input type="submit" class="btn admin-submit" value="Populate DB" />
+          </div>
+        </section>
+      </form>
       <div class="results"></div>
     </main>
     <!-- end admin page -->
