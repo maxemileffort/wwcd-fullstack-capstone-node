@@ -4,7 +4,7 @@ library("ffanalytics")
 # would really like to automate this part, but for now...
 # these are the variables for the time period to scrape
 season <- 2018
-week <- 0
+week <- 1
 
 # while loop to scrape from beginning to end of season
 print("Season:")

@@ -278,6 +278,9 @@ app.post("/user/login", (req, res) => {
     {email: email},
   )
   .then(user=> {
+    if (user === null){
+      return res.status(200).json({message: "User doesn't exist."});
+    }
     //validate password
     let hash = user.password;
     bcrypt.compare(password, hash, (err, result)=>{

@@ -4,8 +4,9 @@ const mongoose = require('mongoose');
 
 // this is our schema to represent a player salary with some stats
 const userSchema = mongoose.Schema({
-  name: {type: String},
+  username: {type: String},
   email: {type: String},
+  password: {type: String},
   newsletter: {type: Boolean, default: false},
   accountType: {type: String, default: 'Free'},
 });

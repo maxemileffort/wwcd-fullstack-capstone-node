@@ -87,7 +87,7 @@
     <section class="">
       <h2>Get in on the action!</h2>
       <h3>Sign up Today</h3>
-      <form action="" class="" method="POST">
+      <form action="" class="" method="POST" id='landing-user'>
         <input id="landing-username" type="text" placeholder="Username">
         <input id="landing-email" type="email" placeholder="Email Address">
         <input id="landing-submit" type="submit" value="Sign up!" class="btn">
@@ -100,12 +100,13 @@
     <main class="main--unflex">
       <section class="">
         <h3>Time to Join the Winning Team</h3>
-        <form action="" method="post">
-          <input id="reg-username" type="text" name="userame" placeholder="Username">
-          <input id="reg-email" type="email" name="email" placeholder="Email">
-          <input id="reg-password1" type="password" name="password1"  placeholder="Password">
-          <input id="reg-password2" type="password" name="password2" placeholder="Retype Password">
-          <input id="reg-submit" type="submit" value="Sign up" class="btn">
+        <form action="#" method="post" id="create-user">
+          <input id="create-username" type="text" name="userame" placeholder="Username">
+          <input id="create-email" type="email" name="email" placeholder="Email">
+          <input id="create-password1" type="password" name="password1"  placeholder="Password">
+          <input id="create-password2" type="password" name="password2" placeholder="Retype Password">
+          <input id="create-submit" type="submit" value="Sign up" class="btn">
+          <div style="color:red" id="create-user-error"></div>
         </form>
         
       </section>
@@ -118,12 +119,13 @@
           <li>Pro members get unlimited numbers of lineups to compare!</li>
         </ul>
       </section>
-      <section class="">
+      <section class="" id="login-user">
         <h3>Welcome Back</h3>
         <form action="" method="POST">
           <input id="login-email" type="email" name="email" placeholder="Email">
           <input id="login-password" type="password" name="password"  placeholder="Password">
           <input id="login-submit" type="submit" value="Login" class="btn">
+          <div style="color:red" id="login-user-error"></div>
         </form>
       </section>
     </main>
