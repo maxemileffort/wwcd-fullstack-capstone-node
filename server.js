@@ -4,7 +4,6 @@ const express   = require('express');
 const mongoose  = require('mongoose');
 const fs        = require('fs');
 const csv       = require('csvtojson');
-const Excel     = require('exceljs');
 const bcrypt    = require('bcrypt');
 const multer    = require('multer');
 
@@ -57,8 +56,8 @@ app.get("/get-projections", (req, res)=>{
     season,
     week
   )
-  .then(projections=>{
-    return res.status(200).json({projections})
+  .then(obj=>{
+    return res.status(200).json(obj.players)
   })
   .catch(err=>{
     return res.status(500).json({msg: 'Something went wrong retrieving player stats.', err})
@@ -73,8 +72,8 @@ app.get("/get-salaries", (req, res)=>{
     season,
     week
   )
-  .then(salaries=>{
-    return res.status(200).json({salaries})
+  .then(obj=>{
+    return res.status(200).json(obj.salaries)
   })
   .catch(err=>{
     return res.status(500).json({msg: 'Something went wrong retrieving player salaries.', err})
@@ -192,9 +191,9 @@ app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
         return res.status(500).json({err})
       }
     })
-  } else {
+  } else { // means that we found an entry matching season and week already
     console.log(204);
-    return false // means that we found an entry matching season and week already
+    return res.status(200).json({msg: "Salary data exists for that period already."})
   }
 })
 .catch(err=>{
@@ -300,8 +299,10 @@ app.post("/user/login", (req, res) => {
 });
 
 // create lineup
-app.post("/lineup/create", (req, res) => {
-});
+// add as a feature later
+// app.post("/lineup/create", (req, res) => {
+//   res.status(200)
+// }); 
 
 //====================
 //PUT endpoints
@@ -321,8 +322,10 @@ app.put("/user/update", (req, res) => {
 });
 
 // change lineups
-app.put("/lineup/update", (req, res) => {
-});
+// add as a feature later
+// app.put("/lineup/update", (req, res) => {
+//   res.status(200)
+// });
 
 //====================
 //DELETE endpoints
@@ -345,8 +348,10 @@ app.delete("/user-delete/:email/", (req, res)=>{
 });
 
 //delete lineup
-app.delete("/lineup/delete", (req, res) => {
-});
+// add as a feature later
+// app.delete("/lineup/delete", (req, res) => {
+//   res.status(200)
+// });
 
 
 //====================

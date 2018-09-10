@@ -50,13 +50,17 @@ header p, a {
 	margin-top: 450px;
 }
 
-a.link-no-box{
+.link-no-box, .single-tab{
   padding: 0;
   width: auto;
   background: none;
   letter-spacing: normal;
   text-decoration: underline;
   color: lightgreen;
+}
+
+.single-tab:active{
+  color: yellow;
 }
 
 a:hover {
@@ -148,65 +152,24 @@ section, footer {
   margin:20px 0;
   color:white;
   font-weight: 100;
+  width: auto;
 }
 
-.salary-tool{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -100px;
-  margin-left: -250px;
-  width: 500px;
-  height: 200px;
-  border: 4px dashed #fff;
-}
-.salary-tool p{
+.dashboard__format{
   width: 100%;
-  height: 100%;
-  text-align: center;
-  line-height: 170px;
-  color: #ffffff;
-  font-family: Arial;
 }
-.salary-tool input{
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  outline: none;
-  opacity: 0;
+
+#dashboard-player-list{
+  max-height: 1000px;
+  overflow: auto;
 }
-/* .salary-tool button{
-  color: #fff;
-  background: #16a085;
-  border: none;
+
+.player{
+  list-style: none;
+}
+
+.lineup{
   width: 50%;
-  height: 50%;
-  border-radius: 4px;
-  border-bottom: 4px solid #117A60;
-  transition: all .2s ease;
-  outline: none;
-} */
-.salary-tool button:hover{
-  background: #149174;
-	color: #0C5645;
-}
-.salary-tool button:active{
-  border:0;
-}
-
-.admin__drag-and-drop--format{
-  height: 250px;
-  width: 100%;
-  margin: 0 auto 1% auto;
-  border: dashed grey 5px;
-}
-
-.admin__social-blast--format{
-  height: 400px;
-  width: 100%;
-  margin: 0 auto 1% auto;
 }
 
 .btn {
