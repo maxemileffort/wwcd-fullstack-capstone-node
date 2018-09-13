@@ -3,9 +3,11 @@
 const express   = require('express');
 const mongoose  = require('mongoose');
 const fs        = require('fs');
+const morgan    = require('morgan');
 const csv       = require('csvtojson');
 const bcrypt    = require('bcrypt');
 const multer    = require('multer');
+const jwt       = require('jsonwebtoken');
 
 mongoose.Promise = global.Promise;
 
@@ -15,6 +17,22 @@ const { Projection } = require('./models/projection');
 const { User } = require('./models/user');
 
 const app = express();
+
+// Logging
+app.use(morgan('common'));
+
+// CORS
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
+  if (req.method === 'OPTIONS') {
+    return res.send(204);
+  }
+  next();
+});
+
+// for uploading csv files
 const upload = multer();
 app.use(express.json());
 app.use(express.static('public'));
@@ -49,15 +67,20 @@ app.get('/check-duplicate-email/:inputEmail', (req, res)=>{
 })
 
 //get projections for lineups
-app.get("/get-projections", (req, res)=>{
-  let season = req.body.season;
-  let week = req.body.week;
-  Projection.findOne(
-    season,
-    week
-  )
+app.get("/get-projections/:season/:week", (req, res)=>{
+  let projectionSeason = req.params.season;
+  let projectionWeek = req.params.week;
+  Projection.findOne({
+    season: projectionSeason,
+    week: projectionWeek
+  })
   .then(obj=>{
-    return res.status(200).json(obj.players)
+    if (obj){
+      // console.log(obj.players.filter(item=>{return item.position === 'QB'}))
+      return res.status(200).json(obj.players)
+    } else {
+      return res.status(200).json({msg: "Projections don't exist for that week yet."})
+    }
   })
   .catch(err=>{
     return res.status(500).json({msg: 'Something went wrong retrieving player stats.', err})
@@ -65,15 +88,20 @@ app.get("/get-projections", (req, res)=>{
 });
 
 //get salaries for lineups
-app.get("/get-salaries", (req, res)=>{
-  let season = req.body.season;
-  let week = req.body.week;
-  Salary.findOne(
-    season,
-    week
-  )
-  .then(obj=>{
-    return res.status(200).json(obj.salaries)
+app.get("/get-salaries/:season/:week", (req, res)=>{
+  let salarySeason = req.params.season;
+  let salaryWeek = req.params.week;
+  Salary.findOne({
+    season: salarySeason,
+    week: salaryWeek
+  })
+    .then(obj=>{
+      if (obj){
+      console.log(obj)
+      return res.status(200).json(obj.salaries)
+    } else {
+      return res.status(200).json({msg: "Salaries don't exist for that week yet."})
+    }
   })
   .catch(err=>{
     return res.status(500).json({msg: 'Something went wrong retrieving player salaries.', err})
@@ -149,7 +177,6 @@ app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
   const csvFile = req.file.buffer.toString();
   const rows = csvFile.split('\n');
   let data = [];
-  console.log("here")
   for (let row of rows) {
     const columns = row.replace(/"\r/g, '').split(',');
     //console.log(columns);
@@ -171,37 +198,31 @@ app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
     processedArray.push(item);
   }
   
-  console.log(180);
   Salary
   .findOne({season: season, week: week})
   .then(result=>{
-    console.log(184);
     if (result === null){ // if there isn't already an entry in the db
-    console.log(186);
     Salary.create({
       salaries: processedArray,
       season: season,
       week: week
     }, 
-    (err)=>{
-      console.log(192);
+    (err, result)=>{
       if(err){
-        console.log(195);
         console.log(err)
         return res.status(500).json({err})
+      } else if (result){
+        return res.status(201).json({msg: "Added new salary entry."})
       }
     })
   } else { // means that we found an entry matching season and week already
-    console.log(204);
     return res.status(200).json({msg: "Salary data exists for that period already."})
   }
 })
 .catch(err=>{
-  console.log(201);
   return res.status(500).json({err, msg: 'Something went wrong searching player salaries.'})
 })
 
-return res.status(200).json({msg: "Finished updating salaries in DB"}) // on success
 
 })
 
@@ -271,20 +292,19 @@ app.post("/user/create/", (req, res) => {
 app.post("/user/login", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let role;
   
   User.findOne(
     {email: email},
   )
   .then(user=> {
-    if (user === null){
+    if (user === null || user === undefined){
       return res.status(200).json({message: "User doesn't exist."});
     }
     //validate password
     let hash = user.password;
     bcrypt.compare(password, hash, (err, result)=>{
-      if (result){
-        res.status(200).json(user);
+      if (result) {
+      return res.status(200).json({message: "Auth successful"});
       } else {
         //if validation fails
         console.log(err)
@@ -294,7 +314,7 @@ app.post("/user/login", (req, res) => {
   })
   .catch(err => {
     console.log(err);
-    res.status(500).json({ message: "Please ask instructor for assistance." })
+    res.status(500).json({ message: "Error logging you in." })
   })
 });
 
@@ -309,15 +329,17 @@ app.post("/user/login", (req, res) => {
 //====================
 // change account status
 app.put("/user/update", (req, res) => {
-  let newType = req.body.newType
+  let newType = req.body.newType;
+  let email = req.body.email;
   User.findOneAndUpdate({
-    email: studentEmail
+    email
   }, {
     $set: {accountType: newType},
   }).then(user => {
-    return res.status(200).json(user);
+    return res.status(200).json({message: "Account updated successfully."});
   }).catch(err => {
     console.log(err);
+    return res.status(500).json({message: "Error updating account."});
   })
 });
 
@@ -335,11 +357,11 @@ app.delete("/user-delete/:email/", (req, res)=>{
   let email = req.params.email
   //find and remove user
   User.findOneAndRemove({
-    email: email
+    email
   })
   .then(user => {
     // console.log(user);
-    res.status(200).json({ message: `Sorry to see you go, ${user}.` })
+    res.status(200).json({ message: `Sorry to see you go, ${user.username}.` })
   })
   .catch(err=>{
     console.log(err);

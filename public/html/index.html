@@ -136,16 +136,19 @@
       <section class="lineup">
         <label for="dashboard-season-select">Season:
           <select name="dashboard-season-select" class="dashboard-select" id="dashboard-season-select">
-            <option value="select">Select</option>
             <option value="2018">2018</option>
+            <option value="select">Select</option>
           </select>
         </label>
         <label for="dashboard-week-select">Week:
           <select name="dashboard-week-select" class="dashboard-select" id="dashboard-week-select">
             <!-- TODO: Switch back first option to select -->
-            <option value="1">1</option>
             <option value="select">Select</option>
             <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
             
           </select>
         </label>
@@ -179,36 +182,26 @@
       
       <section class="lineup optimals">
         <div class="tabs">
-          <a href="#" class="single-tab">Points</a>
-          <a href="#" class="single-tab">Floor</a>
-          <a href="#" class="single-tab">Ceiling</a>
-          <a href="#" class="single-tab">Value</a>
-          <a href="#" class="single-tab">Insight</a>
+          <a href="#" class="single-tab points active">Points</a>
+          <a href="#" class="single-tab floor">Floor</a>
+          <a href="#" class="single-tab ceiling">Ceiling</a>
+          <a href="#" class="single-tab value">Value</a>
+          <a href="#" class="single-tab insight">Insight</a>
         </div>
-        <div class="lineup">
-          <p>Top 5 Position Picks - Points</p>
-          <div id='top-5-points'>
-          </div>
+        <div id='top-5-points' class="top-5 points">
+          <p>Please make a selection</p>
         </div>
-        <div class="lineup">
-          <p>Top 5 Position Picks - Floor</p>
-          <div id='top-5-floor'>
-          </div>
+        <div id='top-5-floor' class=' top-5 hidden floor'>
+          <p>Please make a selection</p>
         </div>
-        <div class="lineup">
-          <p>Top 5 Position Picks - Ceiling</p>
-          <div id='top-5-ceiling'>
-          </div>
+        <div id='top-5-ceiling' class='top-5 hidden ceiling'>
+            <p>Please make a selection</p>
         </div>
-        <div class="lineup">
-          <p>Top 5 Position Picks - Value</p>
-          <div id='top-5-value'>
-          </div>
+        <div id='top-5-value' class='top-5 hidden value'>
+            <p>Please make a selection</p>
         </div>
-        <div class="lineup">
-          <p>Top 5 Position Picks - Insight</p>
-          <div id='top-5-insight'>
-          </div>
+        <div id='top-5-insight' class='top-5 hidden insight'>
+            <p>Please make a selection</p>
         </div>
         
       </section>

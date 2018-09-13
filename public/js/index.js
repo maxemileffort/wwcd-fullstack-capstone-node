@@ -60,7 +60,7 @@ function loginUser(email, password){
         contentType: 'application/json',
         beforeSend: function(){
             //Possible load spinner for dashboard
-            console.log(payload)
+            console.log(payload.email)
         }
     })
     //if call succeeds
@@ -170,16 +170,17 @@ function checkEmailExists (inputEmail){
 }
 
 function getProjections(period){
+    console.log(period)
     $.ajax({
         type: 'GET',
-        url: "/get-projections",
+        url: `/get-projections/${period.season}/${period.week}`,
         dataType: 'json',
-        data: period,
         contentType: 'application/json'
     })
     //if call succeeds
     .done(function (result) {
-        projections = result;
+        projections = result; // set global variable equal to returned result to access in other functions
+        console.log(projections)
         // this function was a bottle neck, 
         // so changed it to where data flow continues here
         getSalaries(period);
@@ -193,16 +194,17 @@ function getProjections(period){
 }
 
 function getSalaries(period){
+    console.log(period)
     $.ajax({
         type: 'GET',
-        url: "/get-salaries",
+        url: `/get-salaries/${period.season}/${period.week}`,
         dataType: 'json',
-        data: period,
         contentType: 'application/json'
     })
     //if call succeeds
     .done(function (result) {
-        salaries = result;
+        salaries = result; // set global variable equal to returned result to access in other functions
+        console.log(salaries)
         // placed here since it needs to fire after the calls to the db
         renderDashboardPlayerList(position)
     })
@@ -214,6 +216,154 @@ function getSalaries(period){
     });
 }
 
+function getPlayerList(renderArr){
+    // renders the initial player list, sorted by tier
+    let tierArr = renderArr.sort(function(a, b){
+        return a.tier - b.tier;
+    })
+    // for adding click handlers:
+    let idArr = []
+    
+    // construct html from the tier array as the whole list
+    let tierOutput = '';
+    tierOutput += "<ul>"
+    tierArr.forEach(el=>{
+        tierOutput += `<li class='player player-${el.id}'>
+        <a class="player-report" href="https://www.google.com/search?q=${el.name.split(' ').join('+')}" target="_blank">
+        Name: ${el.name} - Salary: $${el.salary} -  
+        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
+        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
+        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}
+        </a>
+        </li>`
+        tierOutput += "<hr>"
+        idArr.push(el.id) // adding el.id to this arr in order to add click handlers in the next block
+    })
+    tierOutput += "</ul>"
+	// render tier list
+    $("#dashboard-player-list").html(tierOutput);
+    // will be used for the lineup feature
+    // idArr.forEach(el=>{ // elements of this array are already id's
+    //     $(`.player-${el}`).on('click', event=>{
+    //         handlePlayerClick(event)
+    //         console.log(event)
+    //         // event.stopPropagation();
+    //     })
+    // })
+}
+
+function getTopFivePoints(renderArr){
+    // renders the top 5 players for porjected points
+    let pointsArr = renderArr.sort(function(a, b){
+        return b.points - a.points;
+    }).slice(0, 5)
+    let pointsOutput = '';
+    pointsOutput += "<ul>"
+    pointsArr.forEach(el=>{
+        pointsOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
+        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
+        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
+        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
+        pointsOutput += "<hr>"
+    })
+    pointsOutput += "</ul>"
+    // render points list
+    $("#top-5-points").html(pointsOutput);
+}
+
+function getTopFiveFloor(renderArr){
+    // renders the top 5 players with the best floor
+    let floorArr = renderArr.sort(function(a, b){
+        return b.floor - a.floor;
+    }).slice(0, 5)
+    let floorOutput = '';
+    floorOutput += "<ul>"
+    floorArr.forEach(el=>{
+        floorOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
+        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
+        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
+        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
+        floorOutput += "<hr>"
+    })
+    floorOutput += "</ul>"
+    // render floor list
+    $("#top-5-floor").html(floorOutput);
+}
+
+function getTopFiveCeiling(renderArr){
+    // renders top 5 players with highest ceiling
+    let ceilingArr = renderArr.sort(function(a, b){
+        return b.ceiling - a.ceiling;
+    }).slice(0, 5)
+    let ceilingOutput = '';
+    ceilingOutput += "<ul>"
+    ceilingArr.forEach(el=>{
+        ceilingOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
+        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
+        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
+        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
+        ceilingOutput += "<hr>"
+    })
+    ceilingOutput += "</ul>"
+    // render ceiling list
+    $("#top-5-ceiling").html(ceilingOutput);
+}
+
+function getTopFiveValue(renderArr){
+    // renders top 5 players based on points / salary
+    let valArr = renderArr.sort(function(a, b){
+        let aVal = a.points / (a.salary / 1000)
+        let bVal = b.points / (b.salary / 1000)
+        return bVal - aVal;
+    }).slice(0, 5)
+    let valOutput = '';
+    valOutput += "<ul>"
+    valArr.forEach(el=>{
+        valOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
+        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
+        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
+        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
+        valOutput += "<hr>"
+    })
+    valOutput += "</ul>"
+    // render val list
+    $("#top-5-value").html(valOutput);
+}
+
+function getTopFiveInsight(renderArr){
+    // rating based on a way that relates players' points averages to their salary, rank, and tier
+    let insightArr = renderArr.sort(function(a, b){
+        if (a.points === 0 || a.ceiling === 0 || a.floor === 0
+             || b.points === 0 || b.ceiling === 0 || b.floor === 0){
+            return false
+        }
+        else {
+            // the reasoning behind this is: 
+            // the points values are averaged, in an effort to manage player production expectations. Sort of a weak correction for wide ranges.
+            // in order for the insight value to stay high (which is good), salary has to decrease, while rank and tier should increase.
+            // the bottom number (number with salary) should be close to 1 
+            let aInsight = (a.points+a.floor+a.ceiling)/3 / (a.salary/1000 * a.rank / a.tier) 
+            let bInsight = (b.points+b.floor+b.ceiling)/3 / (b.salary/1000 * b.rank / b.tier) 
+            let insight = aInsight - bInsight;
+            return insight;
+        }
+        
+    }).slice(0, 6)
+    insightArr.splice(0, 1);
+    let insightOutput = '';
+    insightOutput += "<ul>"
+    insightArr.forEach(el=>{
+        insightOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
+        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
+        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
+        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
+        insightOutput += "<hr>"
+    })
+    insightOutput += "</ul>"
+    // render insight list
+    $("#top-5-insight").html(insightOutput);
+}
+
 function renderDashboardPlayerList(position){
     // console.log(position)     
     // console.log(projections)     
@@ -223,7 +373,6 @@ function renderDashboardPlayerList(position){
     if (position !== 'FLEX'){
 		filterProjections = projections.filter(obj=>{
             return (obj.pos === position && obj.avg_type === avg);
-            // return (obj.pos === position);
         });
         
         filterSalaries = salaries.filter(obj=>{
@@ -233,19 +382,13 @@ function renderDashboardPlayerList(position){
 		filterProjections = projections.filter(obj=>{
             return (obj.pos === 'TE' && obj.avg_type === avg || obj.pos === 'WR' && obj.avg_type === avg || 
             obj.pos === 'RB' && obj.avg_type === avg);
-            // return (obj.pos === position);
         });
         
         filterSalaries = salaries.filter(obj=>{
             return (obj.Position === 'TE' || obj.Position === 'RB' || obj.Position === 'WR');
         });
     }
-    
-    
-    
-    // console.log(filterProjections)
-    console.log(filterSalaries)
-    
+
     // create and clear render array every time function is called
     let renderArr = [];
     //combine the objects from the arrays; may move this to server side
@@ -287,125 +430,21 @@ function renderDashboardPlayerList(position){
     })
     // console.log(renderArr);
     
-	// for adding click handlers:
-    let idArr = []
     
-    // 5 different arrays for each category on dashboard
-    let tierArr = renderArr.sort(function(a, b){
-        return a.tier - b.tier;
-    })
+    // clear out html outputs
+    $("#dashboard-player-list").html('');
+    $("#top-5-points").html('');
+    $("#top-5-floor").html('');
+    $("#top-5-ceiling").html('');
+    $("#top-5-value").html('');
+    $("#top-5-insight").html('');
     
-    // construct html from the tier array as the whole list
-    let tierOutput = '';
-    tierOutput += "<ul>"
-    tierArr.forEach(el=>{
-        tierOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
-        Points: ${el.points} pts - Avg Type: ${el.avg_type} -
-        Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
-        Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
-        tierOutput += "<hr>"
-        idArr.push(el.id) // adding el.id to this arr in order to add click handlers in the next block
-    })
-    tierOutput += "</ul>"
-	// render tier list
-    $("#dashboard-player-list").html(tierOutput);
-    idArr.forEach(el=>{ // elements of this array are already id's
-        $(`.player-${el}`).on('click', event=>{
-            handlePlayerClick(event)
-            console.log(event)
-            // event.stopPropagation();
-        })
-    })
-
-let pointsArr = renderArr.sort(function(a, b){
-    return b.points - a.points;
-}).slice(0, 5)
-let pointsOutput = '';
-pointsOutput += "<ul>"
-pointsArr.forEach(el=>{
-    pointsOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
-    Points: ${el.points} pts - Avg Type: ${el.avg_type} -
-    Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
-    Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
-    pointsOutput += "<hr>"
-})
-pointsOutput += "</ul>"
-// render points list
-$("#top-5-points").html(pointsOutput);
-
-let floorArr = renderArr.sort(function(a, b){
-    return b.floor - a.floor;
-}).slice(0, 5)
-let floorOutput = '';
-floorOutput += "<ul>"
-floorArr.forEach(el=>{
-    floorOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
-    Points: ${el.points} pts - Avg Type: ${el.avg_type} -
-    Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
-    Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
-    floorOutput += "<hr>"
-})
-floorOutput += "</ul>"
-// render floor list
-$("#top-5-floor").html(floorOutput);
-
-let ceilingArr = renderArr.sort(function(a, b){
-    return b.ceiling - a.ceiling;
-}).slice(0, 5)
-let ceilingOutput = '';
-ceilingOutput += "<ul>"
-ceilingArr.forEach(el=>{
-    ceilingOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
-    Points: ${el.points} pts - Avg Type: ${el.avg_type} -
-    Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
-    Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
-    ceilingOutput += "<hr>"
-})
-ceilingOutput += "</ul>"
-// render ceiling list
-$("#top-5-ceiling").html(ceilingOutput);
-
-let valArr = renderArr.sort(function(a, b){
-    let aVal = a.points / (a.salary / 1000)
-    let bVal = b.points / (b.salary / 1000)
-    return bVal - aVal;
-}).slice(0, 5)
-let valOutput = '';
-valOutput += "<ul>"
-valArr.forEach(el=>{
-    valOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
-    Points: ${el.points} pts - Avg Type: ${el.avg_type} -
-    Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
-    Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
-    valOutput += "<hr>"
-})
-valOutput += "</ul>"
-// render val list
-$("#top-5-value").html(valOutput);
-
-let insightArr = renderArr.sort(function(a, b){
-    if (a.points === 0 || b.points === 0){
-        return false
-    }
-    else {
-        let aInsight = (a.points+a.floor+a.ceiling)/3 / (a.salary/1000 * a.rank / a.tier) 
-        let bInsight = (b.points+b.floor+b.ceiling)/3 / (b.salary/1000 * b.rank / b.tier) 
-        return aInsight - bInsight;
-    }
-    
-}).slice(0, 5)
-let insightOutput = '';
-insightOutput += "<ul>"
-insightArr.forEach(el=>{
-    insightOutput += `<li class='player player-${el.id}'>Name: ${el.name} - Salary: $${el.salary} -  
-    Points: ${el.points} pts - Avg Type: ${el.avg_type} -
-    Floor: ${el.floor} pts - Ceiling: ${el.ceiling} pts - Tier: ${el.tier} -
-    Position Rank: ${el.pos_rank} - Team: ${el.team} - Game: ${el.game}</li>`
-    insightOutput += "<hr>"
-})
-insightOutput += "</ul>"
-// render insight list
-$("#top-5-insight").html(insightOutput);
+    getPlayerList(renderArr)
+    getTopFivePoints(renderArr)
+    getTopFiveFloor(renderArr)
+    getTopFiveCeiling(renderArr)
+    getTopFiveValue(renderArr)
+    getTopFiveInsight(renderArr)
 }
 
 function handlePlayerClick(event){
@@ -499,6 +538,7 @@ $('#login-user').on('submit', function(e){
 
 // user is in dashboard, checking out different positions
 $('.dashboard-select').on("change", function(e){
+    let period = {};
     e.preventDefault();
     e.stopPropagation();
     // get value
@@ -506,19 +546,30 @@ $('.dashboard-select').on("change", function(e){
     let season = $('#dashboard-season-select').val();
     let week = $('#dashboard-week-select').val();
     let average = $('#dashboard-average-select').val();
-    // validate (make sure it's not first one)
+    // validate (make sure it's not first option)
     if (query === "select" || season === "select" || week === "select" || average === "select"){
         return false;
     }
     // send to ajax call functions
     else {
-        let period = {
-            season,
-            week
+        period = {
+            season: Number(season),
+            week: Number(week)
         }
+        console.log(period)
         position = query.toString();
         avg = average.toString();
+        //functions run in sequence as callbacks, starting with this one:
         getProjections(period);
     }
+})
+
+$('.single-tab').on('click', function(e){
+    e.preventDefault();
+    $('.single-tab').removeClass('active');
+    let query = e.currentTarget.className.split(' ').pop();
+    $(`a.${query}`).addClass('active');
+    $(`div.top-5`).addClass('hidden');
+    $(`div.${query}`).removeClass('hidden');
 })
 

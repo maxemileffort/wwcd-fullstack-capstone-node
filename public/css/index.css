@@ -1,5 +1,9 @@
 
 /* Some CSS Setup - nothing to do with flexbox */
+.hidden {
+  display: none !important; 
+}
+
 html {
     box-sizing: border-box;
   }
@@ -59,14 +63,30 @@ header p, a {
   color: lightgreen;
 }
 
-.single-tab:active{
-  color: yellow;
+.single-tab{
+  border: 1px white solid;
+  padding: 3px;
+  border-radius: 5px 5px 0 0;
+  text-decoration: none;
 }
+
+.single-tab.active{
+  color: crimson;
+  border-bottom: none;
+}
+
 
 a:hover {
   background:rgba(0,0,0,0.3);
   color: crimson;
 }
+
+a.player-report {
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+ }
 
 .toggleNav {
   display: none;
@@ -169,7 +189,7 @@ section, footer {
 }
 
 .lineup{
-  width: 50%;
+  width: 100%;
 }
 
 .btn {
