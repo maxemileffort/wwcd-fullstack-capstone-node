@@ -22,7 +22,7 @@ npm-debug.log.*
 
 .sass-cache
 
-local-config.js
+config.js
 
 process.json
 
