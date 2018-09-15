@@ -304,7 +304,7 @@ app.post("/user/login", (req, res) => {
     let hash = user.password;
     bcrypt.compare(password, hash, (err, result)=>{
       if (result) {
-      return res.status(200).json({message: "Auth successful"});
+      return res.status(200).json({message: "Auth successful", user: user});
       } else {
         //if validation fails
         console.log(err)
