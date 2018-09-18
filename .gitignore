@@ -16,6 +16,8 @@ pids
 logs
 results
 
+TODO.txt
+
 .vagrant
 npm-debug.log
 npm-debug.log.*

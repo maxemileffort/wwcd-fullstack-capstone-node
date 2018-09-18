@@ -11,10 +11,11 @@ const jwt       = require('jsonwebtoken');
 
 mongoose.Promise = global.Promise;
 
-const { PORT, DATABASE_URL } = require('./config');
+const { PORT, DATABASE_URL, JWT_SECRET, JWT_EXPIRY } = require('./config');
 const { Salary } = require('./models/salary');
 const { Projection } = require('./models/projection');
 const { User } = require('./models/user');
+const { checkAuth } = require('./middleware/check-auth');
 
 const app = express();
 
@@ -288,6 +289,12 @@ app.post("/user/create/", (req, res) => {
   });
 });
 
+
+// bcrypt.compare(req.body.password, user[0].password, (err, result) => {
+
+//   }
+
+
 // login user
 app.post("/user/login", (req, res) => {
   let email = req.body.email;
@@ -303,13 +310,27 @@ app.post("/user/login", (req, res) => {
     //validate password
     let hash = user.password;
     bcrypt.compare(password, hash, (err, result)=>{
-      if (result) {
-      return res.status(200).json({message: "Auth successful", user: user});
-      } else {
-        //if validation fails
-        console.log(err)
-        res.status(500).json({message: "Please check email and password and try again."})
-      }
+  			if (err) {
+    			return res.status(401).json({
+      				message: "Auth failed"
+    			});
+  			}
+  			if (result) {
+    				const token = jwt.sign({
+        			email: user.email,
+              username: user.username,
+              accountType: user.accountType
+      			},
+      				JWT_SECRET,
+      			{
+          		expiresIn: JWT_EXPIRY
+      			});
+    				return res.status(200).json({
+      				message: "Auth successful",
+      				token: token,
+							user: user
+    				});
+        }
     })
   })
   .catch(err => {
@@ -327,20 +348,25 @@ app.post("/user/login", (req, res) => {
 //====================
 //PUT endpoints
 //====================
-// change account status
+// update account info
 app.put("/user/update", (req, res) => {
-  let newType = req.body.newType;
-  let email = req.body.email;
-  User.findOneAndUpdate({
-    email
-  }, {
-    $set: {accountType: newType},
-  }).then(user => {
-    return res.status(200).json({message: "Account updated successfully."});
-  }).catch(err => {
-    console.log(err);
-    return res.status(500).json({message: "Error updating account."});
-  })
+  let accountType = req.body.accountType;
+  let newEmail = req.body.accountNewEmail;
+  let currentEmail = req.body.accountCurrentEmail;
+  let newPassword = req.body.accountNewPassword1;
+  let currentPassword = req.body.accountCurrentPassword;
+  console.log(req.body)
+  // User.findOneAndUpdate({
+  //   email: currentEmail
+  // }, {
+  //   $set: {accountType: accountType},
+  // }).then(user => {
+  //   console.log(user)
+  //   return res.status(200).json({message: "Account updated successfully."});
+  // }).catch(err => {
+  //   console.log(err);
+  //   return res.status(500).json({message: "Error updating account."});
+  // })
 });
 
 // change lineups
