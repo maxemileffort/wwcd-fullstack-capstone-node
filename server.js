@@ -42,9 +42,9 @@ app.use(express.static('public'));
 //GET endpoints
 //====================
 //serves landing page
-app.get("/", (req, res) => {
-  return res.status(200).sendFile(__dirname + "/public/html/index.html");
-});
+// app.get("/", (req, res) => {
+//   return res.status(200).sendFile(__dirname + "/public/html/index.html");
+// });
 
 //check for emails to make sure accounts don't duplicate
 app.get('/check-duplicate-email/:inputEmail', (req, res)=>{
@@ -350,12 +350,18 @@ app.post("/user/login", (req, res) => {
 //====================
 // update account info
 app.put("/user/update", (req, res) => {
-  let accountType = req.body.accountType;
-  let newEmail = req.body.accountNewEmail;
-  let currentEmail = req.body.accountCurrentEmail;
-  let newPassword = req.body.accountNewPassword1;
-  let currentPassword = req.body.accountCurrentPassword;
+  // let accountType = req.body.accountType;
+  // let newEmail = req.body.accountNewEmail;
+  // let currentEmail = req.body.accountCurrentEmail;
+  // let newPassword = req.body.accountNewPassword1;
+  // let currentPassword = req.body.accountCurrentPassword;
   console.log(req.body)
+  // console.log(accountType)
+  // console.log(newEmail)
+  // console.log(currentEmail)
+  // console.log(currentPassword)
+  // console.log(newPassword)
+  return res.status(200)
   // User.findOneAndUpdate({
   //   email: currentEmail
   // }, {
