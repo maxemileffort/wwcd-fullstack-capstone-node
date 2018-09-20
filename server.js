@@ -224,8 +224,6 @@ app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
 .catch(err=>{
     return res.status(500).json({err, msg: 'Something went wrong searching player salaries.'})
 })
-
-
 })
 
 // add user
@@ -275,7 +273,7 @@ app.post("/user/create/", (req, res) => {
                 if (user) {
                     //display the new user
                     console.log(`User \`${email}\` created.`);
-                    return res.status(201).json(user);
+                    return res.status(201).json({user});
                 }
             });
         });
@@ -295,6 +293,7 @@ app.post("/user/login", (req, res) => {
                 return res.status(200).json({message: "User doesn't exist."});
             }
             //validate password
+            console.log('validating password...')
             let hash = user.password;
             bcrypt.compare(password, hash, (err, result)=>{
                 if (err) {
@@ -454,12 +453,6 @@ app.post("/user/login", (req, res) => {
             }
             console.log(results)
         });
-        
-       
-        
-
-        
-        
     });
     
     // change lineups
@@ -472,7 +465,7 @@ app.post("/user/login", (req, res) => {
     //DELETE endpoints
     //====================
     //delete account
-    app.delete("/user-delete/:email/", (req, res)=>{
+    app.delete("/user/delete/:email/", (req, res)=>{
         let email = req.params.email
         //find and remove user
         User.findOneAndRemove({
