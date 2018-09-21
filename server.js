@@ -16,6 +16,7 @@ const { PORT, DATABASE_URL, JWT_SECRET, JWT_EXPIRY } = require('./config');
 const { Salary } = require('./models/salary');
 const { Projection } = require('./models/projection');
 const { User } = require('./models/user');
+const { Message } = require('./models/message');
 const { checkAuth } = require('./middleware/check-auth');
 
 const app = express();
@@ -111,6 +112,25 @@ app.get("/get-salaries/:season/:week", (req, res)=>{
     
 });
 
+app.get("/get-messages", (req, res)=>{
+    Message.find({})
+    .then(msgs=>{
+        if (msgs){
+            console.log('line 119')
+            console.log(msgs)
+            // msgs = msgs.serialize();
+            return res.status(200).json(msgs)
+        } else {
+            return res.status(200).json({msg: "There are no messages."})
+        }
+    })
+    .catch(err=>{
+        return res.status(500).json({
+            msg: 'Something went wrong retrieving messages',
+             err
+        })
+    })
+});
 
 //====================
 //POST endpoints
@@ -330,6 +350,28 @@ app.post("/user/login", (req, res) => {
     // app.post("/lineup/create", (req, res) => {
     //   res.status(200)
     // }); 
+
+    app.post("/send-message", (req, res)=>{
+        let email = req.body.email;        
+        let username = req.body.username;
+        let message = req.body.message;
+        let date = new Date();
+        let timeStamp = `${date.getMonth()}/${date.getDate()}/${date.getFullYear()} at ${date.getHours()}:${date.getMinutes()}`;
+        let read = false
+
+        Message.create({
+            email,
+            username,
+            message,
+            timeStamp,
+            read
+        }).then(item=>{
+            return res.status(201).json({message: "Message submitted successfully"})
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({ message: "Error sending message in." })
+        })
+    })
     
     //====================
     //PUT endpoints
@@ -368,6 +410,7 @@ app.post("/user/login", (req, res) => {
                             //extract user info to outer function scope
                             _user = user
                             callback(null, _user);
+                            console.log("user pre-update")
                             console.log(_user)
                         }
                     })
@@ -415,7 +458,6 @@ app.post("/user/login", (req, res) => {
                     });
                 }
                 // update newsletter status
-                console.log(_user)
                 if (_user.newsletter !== newsletter){
                     console.log("Changing newsletter mailing status to " + newsletter)
                     Object.assign(updateObj, {newsletter})
@@ -437,6 +479,8 @@ app.post("/user/login", (req, res) => {
                         message: "Update successful",
                         user: user
                     });
+                    console.log("User post-update")
+                    console.log(user)
                     callback(null, user);
                 })
                 .catch(err => {
@@ -460,6 +504,27 @@ app.post("/user/login", (req, res) => {
     // app.put("/lineup/update", (req, res) => {
     //   res.status(200)
     // });
+
+    app.put("/message/mark-read/:id", (req, res)=>{
+        let id = req.params.id;
+        Message.findByIdAndUpdate(
+            {id}, 
+            { $set: {read: true}},
+            {
+                returnNewDocument: true
+            }
+        )
+        .then(message=>{
+            res.status(200).json({
+                message: "Message marked read",
+                message
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ message: "Error changing message status." })
+        })
+    })
     
     //====================
     //DELETE endpoints
@@ -480,6 +545,19 @@ app.post("/user/login", (req, res) => {
             res.status(500).json({message: `Something went wrong trying to remove user. Error: ${err}`})
         })
     });
+
+    app.delete("/message-delete/:messageId", (req, res)=>{
+        let id = req.params.messageId
+        Message.findByIdAndRemove({id})
+        .then(item=>{
+            res.status(200).json({ message: `Message deleted.` })
+        })
+        .catch(err=>{
+            console.log(err);
+            res.status(500).json({message: `Something went wrong trying to delete message. Error: ${err}`})
+        })
+
+    })
     
     //delete lineup
     // add as a feature later
