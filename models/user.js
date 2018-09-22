@@ -12,17 +12,16 @@ const userSchema = mongoose.Schema({
 });
 
 
-// restaurantSchema.methods.serialize = function() {
+userSchema.methods.serialize = function() {
 
-//   return {
-//     id: this._id,
-//     name: this.name,
-//     cuisine: this.cuisine,
-//     borough: this.borough,
-//     grade: this.grade,
-//     address: this.addressString
-//   };
-// }
+  return { // add id field and remove password
+    id: this._id,
+    username: this.username,
+    email: this.email,
+    newsletter: this.newsletter,
+    accountType: this.accountType
+  };
+}
 
 
 const User = mongoose.model('User', userSchema);

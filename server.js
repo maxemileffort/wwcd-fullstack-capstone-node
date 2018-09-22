@@ -7,8 +7,8 @@ const morgan        = require('morgan');
 const csv           = require('csvtojson');
 const bcrypt        = require('bcrypt');
 const multer        = require('multer');
-const jwt           = require('jsonwebtoken');
 const async         = require('async');
+const passport      = require('passport');
 
 mongoose.Promise = global.Promise;
 
@@ -16,13 +16,15 @@ const { PORT, DATABASE_URL, JWT_SECRET, JWT_EXPIRY } = require('./config');
 const { Salary } = require('./models/salary');
 const { Projection } = require('./models/projection');
 const { User } = require('./models/user');
-const { Message } = require('./models/message');
-const { checkAuth } = require('./middleware/check-auth');
+const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
 
 const app = express();
 
 // Logging
 app.use(morgan('common'));
+
+// router for protected endpoints
+app.use('/auth/', authRouter);
 
 // CORS
 app.use(function (req, res, next) {
@@ -37,17 +39,13 @@ app.use(function (req, res, next) {
 
 // for uploading csv files
 const upload = multer();
+
 app.use(express.json());
 app.use(express.static('public'));
 
 //====================
 //GET endpoints
 //====================
-//serves landing page
-// app.get("/", (req, res) => {
-//   return res.status(200).sendFile(__dirname + "/public/html/index.html");
-// });
-
 //check for emails to make sure accounts don't duplicate
 app.get('/check-duplicate-email/:inputEmail', (req, res)=>{
     let inputEmail = req.params.inputEmail;
@@ -110,26 +108,6 @@ app.get("/get-salaries/:season/:week", (req, res)=>{
         return res.status(500).json({msg: 'Something went wrong retrieving player salaries.', err})
     })
     
-});
-
-app.get("/get-messages", (req, res)=>{
-    Message.find({})
-    .then(msgs=>{
-        if (msgs){
-            console.log('line 119')
-            console.log(msgs)
-            // msgs = msgs.serialize();
-            return res.status(200).json(msgs)
-        } else {
-            return res.status(200).json({msg: "There are no messages."})
-        }
-    })
-    .catch(err=>{
-        return res.status(500).json({
-            msg: 'Something went wrong retrieving messages',
-             err
-        })
-    })
 });
 
 //====================
@@ -301,325 +279,270 @@ app.post("/user/create/", (req, res) => {
 });
 
 // login user
-app.post("/user/login", (req, res) => {
-    let email = req.body.email;
-    let password = req.body.password;
+// app.post("/user/login", (req, res) => {
+//     let email = req.body.email;
+//     let password = req.body.password;
     
-    User.findOne(
-        {email: email},
-        )
-        .then(user=> {
-            if (user === null || user === undefined){
-                return res.status(200).json({message: "User doesn't exist."});
+//     User.findOne(
+//         {email: email},
+//         )
+//         .then(user=> {
+//             if (user === null || user === undefined){
+//                 return res.status(200).json({message: "User doesn't exist."});
+//             }
+//             //validate password
+//             console.log('validating password...')
+//             let hash = user.password;
+//             bcrypt.compare(password, hash, (err, result)=>{
+//                 if (err) {
+//                     return res.status(401).json({
+//                         message: "Auth failed"
+//                     });
+//                 }
+//                 if (result) {
+//                     const token = jwt.sign({
+//                         email: user.email,
+//                         username: user.username,
+//                         accountType: user.accountType
+//                     },
+//                     JWT_SECRET,
+//                     {
+//                         expiresIn: JWT_EXPIRY
+//                     });
+//                     return res.status(200).json({
+//                         message: "Auth successful",
+//                         token: token,
+//                         user: user
+//                     });
+//                 }
+//             })
+//         })
+//         .catch(err => {
+//             console.log(err);
+//             res.status(500).json({ message: "Error logging you in." })
+//         })
+// });
+    
+// create lineup
+// add as a feature later
+// app.post("/lineup/create", (req, res) => {
+//   res.status(200)
+// }); 
+
+//====================
+//PUT endpoints
+//====================
+// update account info
+// app.put("/user/update", (req, res) => {
+//     let accountType = req.body.accountType; 
+//     let newEmail = req.body.accountNewEmail;
+//     let currentEmail = req.body.accountCurrentEmail;
+//     let newPassword1 = req.body.accountNewPassword1;
+//     let newPassword2 = req.body.accountNewPassword2;
+//     let currentPassword = req.body.accountCurrentPassword;
+//     let newsletter = req.body.newsletter;
+//     console.log(req.body)
+//     let updateObj = {};
+//     let _user;
+//     async.series([
+//         function(callback) {
+//             User.findOne(
+//                 {email: currentEmail}
+//             )
+//             .then(user=>{
+//                 console.log(user)
+//                 if (user === null || user === undefined){
+//                     return res.status(200).json({message: "User doesn't exist."});
+//                 }
+//                 //validate password
+//                 let hash = user.password;
+//                 bcrypt.compare(currentPassword, hash, (err, result)=>{
+//                     if (err) { // passwords don't match
+//                     return res.status(401).json({
+//                         message: "Auth failed"
+//                     });
+//                     }
+//                     if (result) { // passwords do match
+//                         //extract user info to outer function scope
+//                         _user = user
+//                         callback(null, _user);
+//                         console.log("user pre-update")
+//                         console.log(_user)
+//                     }
+//                 })
+//             })
+//             .catch(err => {
+//                 console.log(err);
+//                 res.status(500).json({ message: "Error updating your account." })
+//             })
+//         },
+//         function(callback) {
+//             // Construct update object
+//             // update account type
+//             if(_user.accountType !== accountType){ // this is always submitted, so it needs to check against stored value
+//                 console.log("Changing account type to " + accountType)
+//                 updateObj.assign(updateObj, {accountType})
+//             }
+//             // update email
+//             if(newEmail){ // this is an optional value, so just need to see if exists
+//                 console.log("Changing email to " + newEmail)
+//                 Object.assign(updateObj, {email: newEmail})
+//             }
+//             // update password
+//             if (newPassword1 && newPassword2 && newPassword1 === newPassword2){
+//                 console.log("Changing password...")
+//                 //create an encryption key
+//                 bcrypt.genSalt(10, (err, salt) => {
+//                     //if creating the key returns an error...
+//                     if (err) {
+//                         //display it
+//                         return res.status(500).json({
+//                             message: "Couldn't create salt."
+//                         });
+//                     }
+//                     //using the encryption key above generate an encrypted pasword
+//                     bcrypt.hash(newPassword1, salt, (err, hash) => {
+//                         //if creating the ncrypted pasword returns an error..
+//                         if (err) {
+//                             //display it
+//                             return res.status(500).json({
+//                                 message: "Couldn't create hash."
+//                             });
+//                         }
+//                         Object.assign(updateObj, {password: hash})
+//                     });
+//                 });
+//             }
+//             // update newsletter status
+//             if (_user.newsletter !== newsletter){
+//                 console.log("Changing newsletter mailing status to " + newsletter)
+//                 Object.assign(updateObj, {newsletter})
+//             }
+    
+//             console.log(updateObj)
+//             callback(null, updateObj);
+//         },
+//         function(callback) {
+//             User.update(
+//                 {email: currentEmail},
+//                 updateObj,
+//                 {
+//                     returnNewDocument: true
+//                 }
+//             )
+//             .then(user=> {
+//                 res.status(200).json({
+//                     message: "Update successful",
+//                     user: user
+//                 });
+//                 console.log("User post-update")
+//                 console.log(user)
+//                 callback(null, user);
+//             })
+//             .catch(err => {
+//                 console.log(err);
+//                 res.status(500).json({ message: "Error updating your account." })
+//             })
+//         }
+//     ],
+//     // optional callback
+//     function(err, results) {
+//         if(err){
+//             console.log(err)
+//             res.status(500).json({ message: "Error updating your account." })
+//         }
+//         console.log(results)
+//     });
+// });
+
+// change lineups
+// add as a feature later
+// app.put("/lineup/update", (req, res) => {
+//   res.status(200)
+// });
+
+//====================
+//DELETE endpoints
+//====================
+//delete account
+// app.delete("/user/delete/:email/", (req, res)=>{
+//     let email = req.params.email
+//     //find and remove user
+//     User.findOneAndRemove({
+//         email
+//     })
+//     .then(user => {
+//         // console.log(user);
+//         res.status(200).json({ message: `Sorry to see you go, ${user.username}.` })
+//     })
+//     .catch(err=>{
+//         console.log(err);
+//         res.status(500).json({message: `Something went wrong trying to remove user. Error: ${err}`})
+//     })
+// });
+
+
+//delete lineup
+// add as a feature later
+// app.delete("/lineup/delete", (req, res) => {
+//   res.status(200)
+// });
+    
+    
+//====================
+//Catchall endpoint
+//====================
+app.get('/*', function (req, res) {
+    let message = "Page not found."
+    res.status(404).send(message);
+});
+
+// closeServer needs access to a server object, but that only
+// gets created when `runServer` runs, so we declare `server` here
+// and then assign a value to it in run
+let server;
+
+// this function connects to our database, then starts the server
+function runServer(databaseUrl, port = PORT) {
+    
+    return new Promise((resolve, reject) => {
+        mongoose.connect(databaseUrl, err => {
+            if (err) {
+                return reject(err);
             }
-            //validate password
-            console.log('validating password...')
-            let hash = user.password;
-            bcrypt.compare(password, hash, (err, result)=>{
-                if (err) {
-                    return res.status(401).json({
-                        message: "Auth failed"
-                    });
-                }
-                if (result) {
-                    const token = jwt.sign({
-                        email: user.email,
-                        username: user.username,
-                        accountType: user.accountType
-                    },
-                    JWT_SECRET,
-                    {
-                        expiresIn: JWT_EXPIRY
-                    });
-                    return res.status(200).json({
-                        message: "Auth successful",
-                        token: token,
-                        user: user
-                    });
-                }
+            server = app.listen(port, () => {
+                console.log(`Your app is listening on port ${port}`);
+                resolve();
             })
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ message: "Error logging you in." })
-        })
-    });
-    
-    // create lineup
-    // add as a feature later
-    // app.post("/lineup/create", (req, res) => {
-    //   res.status(200)
-    // }); 
-
-    app.post("/send-message", (req, res)=>{
-        let email = req.body.email;        
-        let username = req.body.username;
-        let message = req.body.message;
-        let date = new Date();
-        let timeStamp = `${date.getMonth()}/${date.getDate()}/${date.getFullYear()} at ${date.getHours()}:${date.getMinutes()}`;
-        let read = false
-
-        Message.create({
-            email,
-            username,
-            message,
-            timeStamp,
-            read
-        }).then(item=>{
-            return res.status(201).json({message: "Message submitted successfully"})
-        }).catch(err => {
-            console.log(err);
-            res.status(500).json({ message: "Error sending message in." })
-        })
-    })
-    
-    //====================
-    //PUT endpoints
-    //====================
-    // update account info
-    app.put("/user/update", (req, res) => {
-        let accountType = req.body.accountType; 
-        let newEmail = req.body.accountNewEmail;
-        let currentEmail = req.body.accountCurrentEmail;
-        let newPassword1 = req.body.accountNewPassword1;
-        let newPassword2 = req.body.accountNewPassword2;
-        let currentPassword = req.body.accountCurrentPassword;
-        let newsletter = req.body.newsletter;
-        console.log(req.body)
-        let updateObj = {};
-        let _user;
-        async.series([
-            function(callback) {
-                User.findOne(
-                    {email: currentEmail}
-                )
-                .then(user=>{
-                    console.log(user)
-                    if (user === null || user === undefined){
-                        return res.status(200).json({message: "User doesn't exist."});
-                    }
-                    //validate password
-                    let hash = user.password;
-                    bcrypt.compare(currentPassword, hash, (err, result)=>{
-                        if (err) { // passwords don't match
-                        return res.status(401).json({
-                            message: "Auth failed"
-                        });
-                        }
-                        if (result) { // passwords do match
-                            //extract user info to outer function scope
-                            _user = user
-                            callback(null, _user);
-                            console.log("user pre-update")
-                            console.log(_user)
-                        }
-                    })
-                })
-                .catch(err => {
-                    console.log(err);
-                    res.status(500).json({ message: "Error updating your account." })
-                })
-            },
-            function(callback) {
-                // Construct update object
-                // update account type
-                if(_user.accountType !== accountType){ // this is always submitted, so it needs to check against stored value
-                    console.log("Changing account type to " + accountType)
-                    updateObj.assign(updateObj, {accountType})
-                }
-                // update email
-                if(newEmail){ // this is an optional value, so just need to see if exists
-                    console.log("Changing email to " + newEmail)
-                    Object.assign(updateObj, {email: newEmail})
-                }
-                // update password
-                if (newPassword1 && newPassword2 && newPassword1 === newPassword2){
-                    console.log("Changing password...")
-                    //create an encryption key
-                    bcrypt.genSalt(10, (err, salt) => {
-                        //if creating the key returns an error...
-                        if (err) {
-                            //display it
-                            return res.status(500).json({
-                                message: "Couldn't create salt."
-                            });
-                        }
-                        //using the encryption key above generate an encrypted pasword
-                        bcrypt.hash(newPassword1, salt, (err, hash) => {
-                            //if creating the ncrypted pasword returns an error..
-                            if (err) {
-                                //display it
-                                return res.status(500).json({
-                                    message: "Couldn't create hash."
-                                });
-                            }
-                            Object.assign(updateObj, {password: hash})
-                        });
-                    });
-                }
-                // update newsletter status
-                if (_user.newsletter !== newsletter){
-                    console.log("Changing newsletter mailing status to " + newsletter)
-                    Object.assign(updateObj, {newsletter})
-                }
-        
-                console.log(updateObj)
-                callback(null, updateObj);
-            },
-            function(callback) {
-                User.update(
-                    {email: currentEmail},
-                    updateObj,
-                    {
-                        returnNewDocument: true
-                    }
-                )
-                .then(user=> {
-                    res.status(200).json({
-                        message: "Update successful",
-                        user: user
-                    });
-                    console.log("User post-update")
-                    console.log(user)
-                    callback(null, user);
-                })
-                .catch(err => {
-                    console.log(err);
-                    res.status(500).json({ message: "Error updating your account." })
-                })
-            }
-        ],
-        // optional callback
-        function(err, results) {
-            if(err){
-                console.log(err)
-                res.status(500).json({ message: "Error updating your account." })
-            }
-            console.log(results)
+            .on('error', err => {
+                mongoose.disconnect();
+                reject(err);
+            });
         });
     });
-    
-    // change lineups
-    // add as a feature later
-    // app.put("/lineup/update", (req, res) => {
-    //   res.status(200)
-    // });
+}
 
-    app.put("/message/mark-read/:id", (req, res)=>{
-        let id = req.params.id;
-        Message.findByIdAndUpdate(
-            {id}, 
-            { $set: {read: true}},
-            {
-                returnNewDocument: true
-            }
-        )
-        .then(message=>{
-            res.status(200).json({
-                message: "Message marked read",
-                message
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ message: "Error changing message status." })
-        })
-    })
-    
-    //====================
-    //DELETE endpoints
-    //====================
-    //delete account
-    app.delete("/user/delete/:email/", (req, res)=>{
-        let email = req.params.email
-        //find and remove user
-        User.findOneAndRemove({
-            email
-        })
-        .then(user => {
-            // console.log(user);
-            res.status(200).json({ message: `Sorry to see you go, ${user.username}.` })
-        })
-        .catch(err=>{
-            console.log(err);
-            res.status(500).json({message: `Something went wrong trying to remove user. Error: ${err}`})
-        })
-    });
-
-    app.delete("/message-delete/:messageId", (req, res)=>{
-        let id = req.params.messageId
-        Message.findByIdAndRemove({id})
-        .then(item=>{
-            res.status(200).json({ message: `Message deleted.` })
-        })
-        .catch(err=>{
-            console.log(err);
-            res.status(500).json({message: `Something went wrong trying to delete message. Error: ${err}`})
-        })
-
-    })
-    
-    //delete lineup
-    // add as a feature later
-    // app.delete("/lineup/delete", (req, res) => {
-    //   res.status(200)
-    // });
-    
-    
-    //====================
-    //Catchall endpoint
-    //====================
-    app.get('/*', function (req, res) {
-        let message = "Page not found."
-        res.status(404).send(message);
-    });
-    
-    // closeServer needs access to a server object, but that only
-    // gets created when `runServer` runs, so we declare `server` here
-    // and then assign a value to it in run
-    let server;
-    
-    // this function connects to our database, then starts the server
-    function runServer(databaseUrl, port = PORT) {
-        
+// this function closes the server, and returns a promise. we'll
+// use it in our integration tests later.
+function closeServer() {
+    return mongoose.disconnect().then(() => {
         return new Promise((resolve, reject) => {
-            mongoose.connect(databaseUrl, err => {
+            console.log('Closing server');
+            server.close(err => {
                 if (err) {
                     return reject(err);
                 }
-                server = app.listen(port, () => {
-                    console.log(`Your app is listening on port ${port}`);
-                    resolve();
-                })
-                .on('error', err => {
-                    mongoose.disconnect();
-                    reject(err);
-                });
+                resolve();
             });
         });
-    }
-    
-    // this function closes the server, and returns a promise. we'll
-    // use it in our integration tests later.
-    function closeServer() {
-        return mongoose.disconnect().then(() => {
-            return new Promise((resolve, reject) => {
-                console.log('Closing server');
-                server.close(err => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve();
-                });
-            });
-        });
-    }
-    
-    // if server.js is called directly (aka, with `node server.js`), this block
-    // runs. but we also export the runServer command so other code (for instance, test code) can start the server as needed.
-    if (require.main === module) {
-        runServer(DATABASE_URL).catch(err => console.error(err));
-    }
-    
-    module.exports = { app, runServer, closeServer };
-    
+    });
+}
+
+// if server.js is called directly (aka, with `node server.js`), this block
+// runs. but we also export the runServer command so other code (for instance, test code) can start the server as needed.
+if (require.main === module) {
+    runServer(DATABASE_URL).catch(err => console.error(err));
+}
+
+module.exports = { app, runServer, closeServer };
+
