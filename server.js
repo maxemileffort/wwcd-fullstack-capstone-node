@@ -7,7 +7,8 @@ const morgan        = require('morgan');
 const csv           = require('csvtojson');
 const bcrypt        = require('bcrypt');
 const multer        = require('multer');
-const async         = require('async');
+// const async         = require('async');
+const jwt           = require('jsonwebtoken');
 const passport      = require('passport');
 
 mongoose.Promise = global.Promise;
@@ -16,15 +17,17 @@ const { PORT, DATABASE_URL, JWT_SECRET, JWT_EXPIRY } = require('./config');
 const { Salary } = require('./models/salary');
 const { Projection } = require('./models/projection');
 const { User } = require('./models/user');
-const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
+const { router: authRouter, jwtStrategy } = require('./auth');
 
 const app = express();
 
 // Logging
 app.use(morgan('common'));
 
+passport.use(jwtStrategy);
+
 // router for protected endpoints
-app.use('/auth/', authRouter);
+app.use("/auth/", authRouter);
 
 // CORS
 app.use(function (req, res, next) {
@@ -279,49 +282,49 @@ app.post("/user/create/", (req, res) => {
 });
 
 // login user
-// app.post("/user/login", (req, res) => {
-//     let email = req.body.email;
-//     let password = req.body.password;
+app.post("/user/login", (req, res) => {
+    let email = req.body.email;
+    let password = req.body.password;
     
-//     User.findOne(
-//         {email: email},
-//         )
-//         .then(user=> {
-//             if (user === null || user === undefined){
-//                 return res.status(200).json({message: "User doesn't exist."});
-//             }
-//             //validate password
-//             console.log('validating password...')
-//             let hash = user.password;
-//             bcrypt.compare(password, hash, (err, result)=>{
-//                 if (err) {
-//                     return res.status(401).json({
-//                         message: "Auth failed"
-//                     });
-//                 }
-//                 if (result) {
-//                     const token = jwt.sign({
-//                         email: user.email,
-//                         username: user.username,
-//                         accountType: user.accountType
-//                     },
-//                     JWT_SECRET,
-//                     {
-//                         expiresIn: JWT_EXPIRY
-//                     });
-//                     return res.status(200).json({
-//                         message: "Auth successful",
-//                         token: token,
-//                         user: user
-//                     });
-//                 }
-//             })
-//         })
-//         .catch(err => {
-//             console.log(err);
-//             res.status(500).json({ message: "Error logging you in." })
-//         })
-// });
+    User.findOne(
+        {email: email},
+        )
+        .then(user=> {
+            if (user === null || user === undefined){
+                return res.status(200).json({message: "User doesn't exist."});
+            }
+            //validate password
+            console.log('validating password...')
+            let hash = user.password;
+            bcrypt.compare(password, hash, (err, result)=>{
+                if (err) {
+                    return res.status(401).json({
+                        message: "Auth failed"
+                    });
+                }
+                if (result) {
+                    const token = jwt.sign({
+                        email: user.email,
+                        username: user.username,
+                        accountType: user.accountType
+                    },
+                    JWT_SECRET,
+                    {
+                        expiresIn: JWT_EXPIRY
+                    });
+                    return res.status(200).json({
+                        message: "Auth successful",
+                        token: "Bearer "+token,
+                        user: user
+                    });
+                }
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ message: "Error logging you in." })
+        })
+});
     
 // create lineup
 // add as a feature later

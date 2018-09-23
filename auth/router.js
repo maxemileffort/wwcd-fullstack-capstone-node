@@ -1,59 +1,12 @@
 'use strict';
-const express = require('express');
-const passport = require('passport');
-const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
-const async = require('async');
+const express       = require('express');
+const passport      = require('passport');
+const bodyParser    = require('body-parser');
+const async         = require('async');
 
-const { JWT_SECRET, JWT_EXPIRY } = require('../config');
 const router = express.Router();
 
 router.use(bodyParser.json());
-
-const localAuth = passport.authenticate('local', {session: false});
-// User attempts to login
-router.post('/user/login', localAuth, (req, res) => {
-
-    let email = req.body.email;
-    let password = req.body.password;
-    
-    User.findOne(
-        {email: email},
-        )
-        .then(user=> {
-            if (user === null || user === undefined){
-                return res.status(200).json({message: "User doesn't exist."});
-            }
-            //validate password
-            console.log('validating password...')
-            let hash = user.password;
-            bcrypt.compare(password, hash, (err, result)=>{
-                if (err) {
-                    return res.status(401).json({
-                        message: "Auth failed"
-                    });
-                }
-                if (result) {
-                    const token = jwt.sign({
-                        user: user.serialize()
-                    },
-                    JWT_SECRET,
-                    {
-                        expiresIn: JWT_EXPIRY
-                    });
-                    return res.status(200).json({
-                        message: "Auth successful",
-                        token: "Bearer "+token,
-                        user: user.serialize()
-                    });
-                }
-            })
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ message: "Error logging you in." })
-        })
-});
 
 const jwtAuth = passport.authenticate('jwt', {session: false});
 
