@@ -7,20 +7,25 @@ const morgan        = require('morgan');
 const csv           = require('csvtojson');
 const bcrypt        = require('bcrypt');
 const multer        = require('multer');
-// const async         = require('async');
 const jwt           = require('jsonwebtoken');
 const passport      = require('passport');
 
-mongoose.Promise = global.Promise;
-
-const { PORT, DATABASE_URL, JWT_SECRET, JWT_EXPIRY } = require('./config');
-const { Salary } = require('./models/salary');
+const { PORT, 
+    DATABASE_URL, 
+    JWT_SECRET, 
+    JWT_EXPIRY,
+    MAILGUN_API_KEY, 
+    MAILGUN_DESTINATION_EMAIL_ADDRESS,
+    MAILGUN_SANDBOX_ENDPOINT } = require('./config');
+const { Salary }    = require('./models/salary');
 const { Projection } = require('./models/projection');
-const { User } = require('./models/user');
+const { User }      = require('./models/user');
 const { router: authRouter, jwtStrategy } = require('./auth');
 
-const app = express();
-
+const Mailgun       = require('mailgun-js');
+const app           = express();
+    
+mongoose.Promise    = global.Promise;
 // Logging
 app.use(morgan('common'));
 
@@ -35,7 +40,7 @@ app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
     if (req.method === 'OPTIONS') {
-        return res.send(204);
+        return res.status(204);
     }
     next();
 });
@@ -331,6 +336,32 @@ app.post("/user/login", (req, res) => {
 // app.post("/lineup/create", (req, res) => {
 //   res.status(200)
 // }); 
+
+app.post("/message/send", (req, res)=>{
+    let username = req.body.username;
+    let email = req.body.email;
+    let message = req.body.message;
+    let mailgun = new Mailgun({apiKey: MAILGUN_API_KEY, domain: MAILGUN_SANDBOX_ENDPOINT})
+
+    let data = {
+        from: `${username} <${email}>`,
+        to: MAILGUN_DESTINATION_EMAIL_ADDRESS,
+        subject: `DFS Contact Form Submission from ${username}`,
+        text: message
+    };
+
+    console.log(data)
+
+    mailgun.messages().send(data, function (error, body) {
+        if (error){
+            console.log(error)
+        } else {
+            console.log(body);
+        }
+    });
+    
+    res.status(200).json({message: `Got the message: "${message}" from User: ${username}`})
+})
 
 //====================
 //PUT endpoints
