@@ -5,7 +5,7 @@ const mongoose      = require('mongoose');
 const fs            = require('fs');
 const morgan        = require('morgan');
 const csv           = require('csvtojson');
-const bcrypt        = require('bcrypt');
+const bcrypt        = require('bcryptjs');
 const multer        = require('multer');
 const jwt           = require('jsonwebtoken');
 const passport      = require('passport');
@@ -234,7 +234,7 @@ app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
 
 // add user
 app.post("/user/create/", (req, res) => {
-    //take the paylod from the ajax api call
+    //grab the paylod
     let username = req.body.username || "";
     let email = req.body.email || "";
     let password = req.body.password || "";
@@ -255,20 +255,20 @@ app.post("/user/create/", (req, res) => {
         }
         //using the encryption key above generate an encrypted pasword
         bcrypt.hash(password, salt, (err, hash) => {
-            //if creating the ncrypted pasword returns an error..
+            //if creating the encrypted pasword returns an error..
             if (err) {
                 //display it
                 return res.status(500).json({
                     message: "Couldn't create hash."
                 });
             }
-            //using the mongoose DB schema, connect to the database and create the new user
+            //if all goes well, create user
             User.create({
                 username,
                 email,
                 password: hash,
             }, (err, user) => {
-                //if creating a new user in the DB returns an error..
+                //if creating a new user returns an error..
                 if (err) {
                     //display it
                     return res.status(500).json({
@@ -278,7 +278,7 @@ app.post("/user/create/", (req, res) => {
                 //if creating a new user in the DB is succefull
                 if (user) {
                     //display the new user
-                    console.log(`User \`${email}\` created.`);
+                    console.log(`User '${email}' created.`);
                     return res.status(201).json({user});
                 }
             });
@@ -291,44 +291,52 @@ app.post("/user/login", (req, res) => {
     let email = req.body.email;
     let password = req.body.password;
     
-    User.findOne(
-        {email: email},
-        )
-        .then(user=> {
-            if (user === null || user === undefined){
-                return res.status(200).json({message: "User doesn't exist."});
+    User.findOne({ 
+        email 
+    })
+   .then(user=> {
+    	if (user === null || user === undefined){
+            return res.status(200).json({message: "User doesn't exist."});
+        }
+        //validate password
+        console.log('validating password...');
+        let hash = user.password;
+        bcrypt.compare(password, hash)
+        .then(result=>{
+            if (!result){
+                console.log('Passwords did not match')
+                return res.status(401).json({
+                    message: "Auth failed"
+                });
+            } else {
+				console.log("Passwords match, signing token...")
+                const token = jwt.sign({
+                    email: user.email,
+                    username: user.username,
+                    accountType: user.accountType
+                },
+                JWT_SECRET,
+                {
+                    expiresIn: JWT_EXPIRY
+                });
+                return res.status(200).json({
+                    message: "Auth successful",
+                    token: "Bearer "+token,
+                    user: user
+                });
             }
-            //validate password
-            console.log('validating password...')
-            let hash = user.password;
-            bcrypt.compare(password, hash, (err, result)=>{
-                if (err) {
-                    return res.status(401).json({
-                        message: "Auth failed"
-                    });
-                }
-                if (result) {
-                    const token = jwt.sign({
-                        email: user.email,
-                        username: user.username,
-                        accountType: user.accountType
-                    },
-                    JWT_SECRET,
-                    {
-                        expiresIn: JWT_EXPIRY
-                    });
-                    return res.status(200).json({
-                        message: "Auth successful",
-                        token: "Bearer "+token,
-                        user: user
-                    });
-                }
-            })
         })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ message: "Error logging you in." })
+        .catch(err=>{
+            console.log(err)
+            return res.status(401).json({
+                message: "Auth failed"
+            });
         })
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ message: "Error logging you in." })
+    })
 });
     
 // create lineup

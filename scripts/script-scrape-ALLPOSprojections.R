@@ -17,9 +17,9 @@ while (week < end){
   print(week)
   # proprietary scrape from the guys at FantasyFootballAnalytics.net
   my_scrape <- scrape_data(
-                  src = c("CBS", "ESPN", "FantasyData", 
+                  src = c("CBS", "ESPN", 
                           "FantasyPros", "FantasySharks", "FFToday", 
-                          "FleaFlicker", "NumberFire", "Yahoo", 
+                          "NumberFire", "Yahoo", 
                           "FantasyFootballNerd", "NFL"),
                   pos = c("QB", "RB", "WR", "TE", "DST"), 
                   season = season, week = week)
