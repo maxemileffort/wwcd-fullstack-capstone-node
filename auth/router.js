@@ -52,7 +52,7 @@ router.post("/user/login/", (req, res)=>{
                 });
                 return res.status(200).json({
                     message: "Auth successful",
-                    token: "Bearer "+token,
+                    token: "Bearer " + token,
                     user: user
                 });
             }
