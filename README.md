@@ -1,9 +1,9 @@
 # Winner Winner, Chicken Dinner
 ### DFS Analytics App
 
-Sign in page: https://dfs-analytics-react-capstone.herokuapp.com/
+Sign in page: https://wwcd-dfs.herokuapp.com/
 
-Technology used: React, Redux, HTML, CSS, Javascript, jQuery, Node, MongoDB
+Technology used: React, HTML, CSS, Javascript, jQuery, Node, MongoDB
 
 ## Images
 
