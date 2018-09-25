@@ -3,7 +3,7 @@
 
 Sign in page: https://wwcd-dfs.herokuapp.com/
 
-Technology used: React, Redux, HTML, CSS, Javascript, jQuery, Node, MongoDB
+Technology used: React, HTML, CSS, Javascript, jQuery, Node, MongoDB
 
 ## Images
 
