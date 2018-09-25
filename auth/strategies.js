@@ -15,7 +15,7 @@ const jwtStrategy = new JwtStrategy(
     algorithms: ['HS256']
   },
   (payload, done) => {
-    done(null, payload.user);
+    done(null, payload);
   }
 );
 

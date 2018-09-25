@@ -32,19 +32,19 @@ app.use(morgan('common'));
 
 passport.use(jwtStrategy);
 
-// router for protected endpoints
-app.use("/auth/", authRouter);
-
 // CORS
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
-    if (req.method === 'OPTIONS') {
-        return res.status(204);
-    }
+    res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,POST,PUT,PATCH,DELETE');
+    // if (req.method === 'OPTIONS') {
+    //     return res.status(204);
+    // }
     next();
 });
+
+// router for protected endpoints
+app.use("/auth/", authRouter);
 
 // for uploading csv files
 const upload = multer();
@@ -280,7 +280,7 @@ app.post("/user/create/", (req, res) => {
                 if (user) {
                     //display the new user
                     console.log(`User '${email}' created.`);
-                    return res.status(201).json({user});
+                    return res.status(201).json({user, message: "Your account has been created!"});
                 }
             });
         });
@@ -288,57 +288,57 @@ app.post("/user/create/", (req, res) => {
 });
 
 // login user
-app.post("/user/login", (req, res) => {
-    let email = req.body.email;
-    let password = req.body.password;
+// app.post("/user/login", (req, res) => {
+//     let email = req.body.email;
+//     let password = req.body.password;
     
-    User.findOne({ 
-        email 
-    })
-   .then(user=> {
-    	if (user === null || user === undefined){
-            return res.status(200).json({message: "User doesn't exist."});
-        }
-        //validate password
-        console.log('validating password...');
-        let hash = user.password;
-        bcrypt.compare(password, hash)
-        .then(result=>{
-            if (!result){
-                console.log('Passwords did not match')
-                return res.status(401).json({
-                    message: "Auth failed"
-                });
-            } else {
-				console.log("Passwords match, signing token...")
-                const token = jwt.sign({
-                    email: user.email,
-                    username: user.username,
-                    accountType: user.accountType
-                },
-                JWT_SECRET,
-                {
-                    expiresIn: JWT_EXPIRY
-                });
-                return res.status(200).json({
-                    message: "Auth successful",
-                    token: "Bearer "+token,
-                    user: user
-                });
-            }
-        })
-        .catch(err=>{
-            console.log(err)
-            return res.status(401).json({
-                message: "Auth failed"
-            });
-        })
-    })
-    .catch(err => {
-        console.log(err);
-        res.status(500).json({ message: "Error logging you in." })
-    })
-});
+//     User.findOne({ 
+//         email 
+//     })
+//    .then(user=> {
+//     	if (user === null || user === undefined){
+//             return res.status(200).json({message: "User doesn't exist."});
+//         }
+//         //validate password
+//         console.log('validating password...');
+//         let hash = user.password;
+//         bcrypt.compare(password, hash)
+//         .then(result=>{
+//             if (!result){
+//                 console.log('Passwords did not match')
+//                 return res.status(401).json({
+//                     message: "Auth failed"
+//                 });
+//             } else {
+// 				console.log("Passwords match, signing token...")
+//                 const token = jwt.sign({
+//                     email: user.email,
+//                     username: user.username,
+//                     accountType: user.accountType
+//                 },
+//                 JWT_SECRET,
+//                 {
+//                     expiresIn: JWT_EXPIRY
+//                 });
+//                 return res.status(200).json({
+//                     message: "Auth successful",
+//                     token: "Bearer "+token,
+//                     user: user
+//                 });
+//             }
+//         })
+//         .catch(err=>{
+//             console.log(err)
+//             return res.status(401).json({
+//                 message: "Auth failed"
+//             });
+//         })
+//     })
+//     .catch(err => {
+//         console.log(err);
+//         res.status(500).json({ message: "Error logging you in." })
+//     })
+// });
     
 // create lineup
 // add as a feature later
