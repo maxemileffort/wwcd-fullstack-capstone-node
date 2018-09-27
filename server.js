@@ -7,14 +7,10 @@ const morgan        = require('morgan');
 const csv           = require('csvtojson');
 const bcrypt        = require('bcryptjs');
 const multer        = require('multer');
-const async 		= require('async');
-const jwt           = require('jsonwebtoken');
 const passport      = require('passport');
 
 const { PORT, 
     DATABASE_URL, 
-    JWT_SECRET, 
-    JWT_EXPIRY,
     MAILGUN_API_KEY, 
     MAILGUN_DESTINATION_EMAIL_ADDRESS,
     MAILGUN_SANDBOX_ENDPOINT } = require('./config');
@@ -37,9 +33,6 @@ app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
     res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,POST,PUT,PATCH,DELETE');
-    // if (req.method === 'OPTIONS') {
-    //     return res.status(204);
-    // }
     next();
 });
 
@@ -58,7 +51,7 @@ app.use(express.static('public'));
 //check for emails to make sure accounts don't duplicate
 app.get('/check-duplicate-email/:inputEmail', (req, res)=>{
     let inputEmail = req.params.inputEmail;
-    console.log(inputEmail);
+    // console.log(inputEmail);
     User
     .find({
         email: inputEmail
@@ -107,7 +100,7 @@ app.get("/get-salaries/:season/:week", (req, res)=>{
     })
     .then(obj=>{
         if (obj){
-            console.log(obj)
+            // console.log(obj)
             return res.status(200).json(obj.salaries)
         } else {
             return res.status(200).json({msg: "Salaries don't exist for that week yet."})
@@ -280,7 +273,7 @@ app.post("/user/create/", (req, res) => {
                 if (user) {
                     //display the new user
                     console.log(`User '${email}' created.`);
-                    return res.status(201).json({user, message: "Your account has been created!"});
+                    return res.status(201).json({message: "Your account has been created!"});
                 }
             });
         });
@@ -288,63 +281,8 @@ app.post("/user/create/", (req, res) => {
 });
 
 // login user
-// app.post("/user/login", (req, res) => {
-//     let email = req.body.email;
-//     let password = req.body.password;
-    
-//     User.findOne({ 
-//         email 
-//     })
-//    .then(user=> {
-//     	if (user === null || user === undefined){
-//             return res.status(200).json({message: "User doesn't exist."});
-//         }
-//         //validate password
-//         console.log('validating password...');
-//         let hash = user.password;
-//         bcrypt.compare(password, hash)
-//         .then(result=>{
-//             if (!result){
-//                 console.log('Passwords did not match')
-//                 return res.status(401).json({
-//                     message: "Auth failed"
-//                 });
-//             } else {
-// 				console.log("Passwords match, signing token...")
-//                 const token = jwt.sign({
-//                     email: user.email,
-//                     username: user.username,
-//                     accountType: user.accountType
-//                 },
-//                 JWT_SECRET,
-//                 {
-//                     expiresIn: JWT_EXPIRY
-//                 });
-//                 return res.status(200).json({
-//                     message: "Auth successful",
-//                     token: "Bearer "+token,
-//                     user: user
-//                 });
-//             }
-//         })
-//         .catch(err=>{
-//             console.log(err)
-//             return res.status(401).json({
-//                 message: "Auth failed"
-//             });
-//         })
-//     })
-//     .catch(err => {
-//         console.log(err);
-//         res.status(500).json({ message: "Error logging you in." })
-//     })
-// });
-    
-// create lineup
-// add as a feature later
-// app.post("/lineup/create", (req, res) => {
-//   res.status(200)
-// }); 
+// endpoint: auth/user/login
+// moved to auth router
 
 app.post("/message/send", (req, res)=>{
     let username = req.body.username;
@@ -376,93 +314,8 @@ app.post("/message/send", (req, res)=>{
 //PUT endpoints
 //====================
 // update account info
-app.put("/user/update", (req, res) => {
-    let currentEmail = req.body.accountCurrentEmail;
-    let accountType = req.body.accountType; 
-    let newEmail = req.body.accountNewEmail;
-    let newPassword1 = req.body.accountNewPassword1;
-    let newPassword2 = req.body.accountNewPassword2;
-    let currentPassword = req.body.accountCurrentPassword;
-    let newsletter = req.body.newsletter;
-    console.log(req.body)
-    let updateObj = {
-        newsletter,
-        accountType
-    };
-    if (newEmail){
-        updateObj.email = newEmail;
-    }
-    if (newPassword1 && newPassword2 && newPassword1 === newPassword2){
-        updateObj.password = bcrypt.hashSync(newPassword1, 10);
-    }
-	console.log(updateObj)
-    let _user;
-    async.series([
-        function(callback) {
-            User.findOne(
-                {email: currentEmail}
-            )
-            .then(user=>{
-                if (user === null || user === undefined){
-                    return res.status(200).json({message: "User doesn't exist."});
-                }
-                //validate password
-                console.log('validating password...');
-                let hash = user.password;
-                bcrypt.compare(currentPassword, hash)
-                .then(result=>{
-                    if (!result){
-                        console.log('Passwords did not match')
-                        return res.status(401).json({
-                            message: "Auth failed"
-                        });
-                    } 
-                    else {
-                        console.log("Passwords match, beginning update...")
-                        _user = user
-                        callback(null, _user)
-                    }
-                })
-                .catch(err=>{
-                    console.log(err)
-                    return res.status(401).json({
-                        message: "Auth failed"
-                    });
-                })
-            })	
-        },
-        function(callback) {
-            User.update(
-                {email: currentEmail},
-                updateObj,
-                {
-                    returnNewDocument: true
-                }
-            )
-            .then(user=> {
-                res.status(200).json({
-                    message: "Update successful",
-                    user: user
-                });
-                console.log("User post-update")
-                console.log(user)
-                callback(null, user);
-            })
-            .catch(err => {
-                console.log(err);
-                res.status(500).json({ message: "Error updating your account." })
-            })
-        }
-    ],
-    // optional callback
-    function(err, results) {
-        if(err){
-            console.log(err)
-            res.status(500).json({ message: "Error updating your account." })
-        }
-        console.log(results)
-    });
-});
+// endpoint: auth/user/update
+// moved to auth router
 
 // change lineups
 // add as a feature later
@@ -473,30 +326,15 @@ app.put("/user/update", (req, res) => {
 //====================
 //DELETE endpoints
 //====================
-//delete account
-// app.delete("/user/delete/:email/", (req, res)=>{
-//     let email = req.params.email
-//     //find and remove user
-//     User.findOneAndRemove({
-//         email
-//     })
-//     .then(user => {
-//         // console.log(user);
-//         res.status(200).json({ message: `Sorry to see you go, ${user.username}.` })
-//     })
-//     .catch(err=>{
-//         console.log(err);
-//         res.status(500).json({message: `Something went wrong trying to remove user. Error: ${err}`})
-//     })
-// });
-
+// delete account
+// endpoint: /auth/user/delete/:email/
+// moved to auth router
 
 //delete lineup
 // add as a feature later
 // app.delete("/lineup/delete", (req, res) => {
 //   res.status(200)
 // });
-    
     
 //====================
 //Catchall endpoint

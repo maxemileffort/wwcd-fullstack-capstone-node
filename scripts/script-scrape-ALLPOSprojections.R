@@ -7,7 +7,7 @@ library("ffanalytics")
 # only update end, adding 1 to it on Wednesdays, preferably in the evening
 season <- 2018
 week <- 1
-end <- 4 # end should be whatever NFL week it is + 1
+end <- 5 # end should be whatever NFL week it is + 1
 
 # while loop to scrape from beginning to end of season
 while (week < end){
