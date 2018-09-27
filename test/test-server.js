@@ -1,5 +1,6 @@
-const chai = require('chai');
-const chaiHttp = require('chai-http');
+const chai          = require('chai');
+const chaiHttp      = require('chai-http');
+const fs            = require('fs');
 
 const {app, runServer, closeServer} = require('../server');
 
@@ -9,6 +10,8 @@ const { PORT,
 const expect = chai.expect;
 
 chai.use(chaiHttp);
+
+let token; // set out here to use in the different tests
 
 describe('Create a test user to use in later tests', function(){
     before(function() {
@@ -21,14 +24,14 @@ describe('Create a test user to use in later tests', function(){
 
     it('creates a new user', function() {
         let username = 'test'
-        let inputEmail = 'testytesttest@testerville.com'
-        let pw = 'test'
+        let email = 'testytesttest@testerville.com'
+        let password = 'test'
         return chai.request(app)
         .post(`/user/create`)
-        .send({username, inputEmail, pw})
+        .send({username, email, password})
         .then(function(res) {
             expect(res).to.have.status(201);
-            expect(res.message).to.equal("Your account has been created!");
+            expect(res.body.message).to.equal("Your account has been created!");
         });
     });
 })
@@ -84,57 +87,69 @@ describe('POST endpoints', function() {
     
     it('logs in an user', function() {
         let email = "testytesttest@testerville.com";
-        let pw = "test";
+        let password = "test";
         return chai.request(app)
         .post(`/auth/user/login`)
-        .send({email, pw})
+        .send({email, password})
         .then(function(res) {
             expect(res).to.have.status(200);
-            expect(res.message).to.equal("Auth successful");
+            expect(res.body.message).to.equal("Auth successful");
+            token = res.body.token;
         });
     });
     
-    it('creates a salary entry', function() {
-        let season = 2018;
-        let week = 3;
-        return chai.request(app)
-        .post(`/get-salaries/${season}/${week}`)
-        .then(function(res) {
-            expect(res).to.have.status(200);
-        });
-    });
-
     it('creates a projection entry', function() {
         let season = 2018;
         let week = 3;
         return chai.request(app)
-        .post(`/get-salaries/${season}/${week}`)
+        .post(`/send-stats-to-db/`)
+        .send({
+            season,
+            week
+        })
         .then(function(res) {
             expect(res).to.have.status(200);
         });
     });
 
-    it('sends a message', function() {
-        let username = 'messageTest';
-        let email = 'messageTest@messageTest.com';
-        let message = 'messageTest';
-        let messageObj = {
-            username, 
-            email,
-            message
-        }
+    // =========================================================
+    // =========================================================
+    // =========================================================
+    it('creates a salary entry', function() {
+        this.timeout(3000);
         return chai.request(app)
-        .post(`/message/send`)
-        .send(messageObj)
+        .post(`/send-salaries-to-db/`)
+        .attach('salaries', fs.readFileSync('./test/DKSalaries.csv'))
         .then(function(res) {
             expect(res).to.have.status(200);
-            expect(res.message).to.equal(`Got the message: "${message}" from User: ${username}`);
         });
     });
+    // =========================================================
+    // =========================================================
+    // =========================================================
+
+    // working as intended, just want to stop getting test messages
+    // it('sends a message', function() {
+    //     let username = 'messageTest';
+    //     let email = 'messageTest@messageTest.com';
+    //     let message = 'messageTest';
+    //     let messageObj = {
+    //         username, 
+    //         email,
+    //         message
+    //     }
+    //     return chai.request(app)
+    //     .post(`/message/send`)
+    //     .send(messageObj)
+    //     .then(function(res) {
+    //         expect(res).to.have.status(200);
+    //         expect(res.body.message).to.equal(`Got the message: "${message}" from User: ${username}`);
+    //     });
+    // });
     
 });
 
-describe('PUT endpoints', function() {
+describe('/auth endpoints', function() {
     before(function() {
         return runServer(DATABASE_URL, PORT);
     });
@@ -142,7 +157,7 @@ describe('PUT endpoints', function() {
     after(function() {
         return closeServer();
     });
-    
+
     it('updates user with submitted object', function() {
         let accountCurrentEmail = 'testytesttest@testerville.com';
         let accountNewEmail = 'testytesttest@tester.com';
@@ -161,29 +176,21 @@ describe('PUT endpoints', function() {
             newsletter
         }
         return chai.request(app)
-        .put(`/auth/user/update}`)
+        .put(`/auth/user/update`)
+        .set('Authorization', token)
         .send(updateObj)
         .then(function(res) {
             expect(res).to.have.status(200);
-            expect(res.message).to.equal("Update successful");
+            expect(res.body.message).to.equal("Update successful");
         });
-    });
-});
-
-describe('DELETE endpoints', function() {
-    before(function() {
-        return runServer(DATABASE_URL, PORT);
-    });
-    
-    after(function() {
-        return closeServer();
     });
     
     // deletes updated test user
     it('deletes user by email', function() {
         let email = 'testytesttest@tester.com'
         return chai.request(app)
-        .delete(`/user/delete/${email}/`)
+        .delete(`/auth/user/delete/${email}/`)
+        .set('Authorization', token)
         .then(function(res) {
             expect(res).to.have.status(200);
         });

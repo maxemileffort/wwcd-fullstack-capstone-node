@@ -124,9 +124,9 @@ app.post("/send-stats-to-db/", (req, res)=>{
     //grab paylod
     season = req.body.season;
     week = req.body.week;
-    console.log("Projections:")
-    console.log("   Season:" + season)
-    console.log("   Week:" + week)
+    // console.log("Projections:")
+    // console.log("   Season:" + season)
+    // console.log("   Week:" + week)
     //regular season always ends at week 17, and with the way
     //loops work, the end variable is always 18
     // let end = 18; currently not implemented, 
@@ -135,7 +135,7 @@ app.post("/send-stats-to-db/", (req, res)=>{
     
     //first check to see if there is an entry already so we don't duplicate data
     Projection
-    .findOne({season: season, week: week})
+    .findOne({season, week})
     .then(result=>{
         //if there isn't one already, then add it
         //after converting csv to json
@@ -297,11 +297,10 @@ app.post("/message/send", (req, res)=>{
         text: message
     };
 
-    console.log(data)
-
     mailgun.messages().send(data, function (error, body) {
         if (error){
             console.log(error)
+            return res.status(500).json({message: "Something went wrong sending that message. Please, try again later."})
         } else {
             console.log(body);
         }
