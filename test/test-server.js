@@ -117,11 +117,15 @@ describe('POST endpoints', function() {
     // =========================================================
     it('creates a salary entry', function() {
         this.timeout(3000);
+        let file = './test/DKSalaries.csv';
         return chai.request(app)
         .post(`/send-salaries-to-db/`)
-        .attach('salaries', fs.readFileSync('./test/DKSalaries.csv'))
+        .attach('salaries', file)
         .then(function(res) {
             expect(res).to.have.status(200);
+        })
+        .catch(err=>{
+            console.log(err)
         });
     });
     // =========================================================

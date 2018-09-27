@@ -48,6 +48,10 @@ app.use(express.static('public'));
 //====================
 //GET endpoints
 //====================
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/html/index.html");
+});
+
 //check for emails to make sure accounts don't duplicate
 app.get('/check-duplicate-email/:inputEmail', (req, res)=>{
     let inputEmail = req.params.inputEmail;
@@ -176,6 +180,7 @@ app.post("/send-stats-to-db/", (req, res)=>{
 
 // area where admin updates salaries every week
 app.post("/send-salaries-to-db/", upload.single('salaries'), async (req, res)=>{
+    console.log(req.file);
     const csvFile = req.file.buffer.toString();
     const rows = csvFile.split('\n');
     let data = [];
