@@ -23,6 +23,7 @@ describe('Create a test user to use in later tests', function(){
     });
 
     it('creates a new user', function() {
+        this.timeout(3000);
         let username = 'test'
         let email = 'testytesttest@testerville.com'
         let password = 'test'
@@ -46,6 +47,7 @@ describe('GET endpoints', function() {
     });
 
     it('checks for duplicate emails', function() {
+        this.timeout(3000);
         let inputEmail = 'testytesttest@testerville.com'
         return chai.request(app)
         .get(`/check-duplicate-email/${inputEmail}`)
@@ -55,6 +57,7 @@ describe('GET endpoints', function() {
     });
     
     it('checks for projections', function() {
+        this.timeout(3000);
         let season = 2018;
         let week = 3;
         return chai.request(app)
@@ -65,6 +68,7 @@ describe('GET endpoints', function() {
     });
     
     it('checks for salaries', function() {
+        this.timeout(3000);
         let season = 2018;
         let week = 3;
         return chai.request(app)
@@ -99,6 +103,7 @@ describe('POST endpoints', function() {
     });
     
     it('creates a projection entry', function() {
+        this.timeout(3000);
         let season = 2018;
         let week = 3;
         return chai.request(app)
