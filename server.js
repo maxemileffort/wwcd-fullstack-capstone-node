@@ -242,6 +242,21 @@ app.post("/user/create/", (req, res) => {
     username = username.trim();
     email = email.trim();
     password = password.trim();
+
+    // since this dyno isn't up all the time yet, I need a little redundancy to make sure 
+    // the email entered by user is unique
+    User.findOne({email})
+    .then(result=>{
+        if (result.length>0){
+            return res.status(200).json({message: "That user exists already."})
+        }
+    })
+    .catch(err=> {
+        console.log(err)
+        return res.status(500).json({
+            message: "Couldn't create user."
+        });
+    })
     
     //create an encryption key
     bcrypt.genSalt(10, (err, salt) => {
