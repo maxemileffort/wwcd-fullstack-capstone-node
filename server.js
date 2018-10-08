@@ -52,6 +52,10 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/html/index.html");
 });
 
+app.get("/ping-server", (req, res)=>{
+    res.status(200).json({msg: "Dyno is running!"})
+})
+
 //check for emails to make sure accounts don't duplicate
 app.get('/check-duplicate-email/:inputEmail', (req, res)=>{
     let inputEmail = req.params.inputEmail;
