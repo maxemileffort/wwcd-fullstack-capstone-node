@@ -6,37 +6,28 @@ library("ffanalytics")
 
 # only update end, adding 1 to it on Wednesdays, preferably in the evening
 season <- 2018
-week <- 3
-end <- 6 # end should be whatever NFL week it is + 1
+week <- 6 # just add 1 to this number every week
 
-# while loop to scrape from beginning to end of season
-while (week < end){
-  print("Season:")
-  print(season)
-  print("Week:")
-  print(week)
-  # proprietary scrape from the guys at FantasyFootballAnalytics.net
-  my_scrape <- scrape_data(
-                  src = c("CBS", "ESPN", 
-                          "FantasyPros", "FantasySharks", "FFToday", 
-                          "NumberFire", "Yahoo", 
-                          "FantasyFootballNerd", "NFL"),
-                  pos = c("QB", "RB", "WR", "TE", "DST"), 
-                  season = season, week = week)
+print("Season:")
+print(season)
+print("Week:")
+print(week)
+# proprietary scrape from the guys at FantasyFootballAnalytics.net
+my_scrape <- scrape_data(
+                src = c("CBS", "ESPN", 
+                        "FantasyPros", "FantasySharks", "FFToday", 
+                        "NumberFire", "Yahoo", 
+                        "FantasyFootballNerd", "NFL"),
+                pos = c("QB", "RB", "WR", "TE", "DST"), 
+                season = season, week = week)
 
-  my_projections <- projections_table(my_scrape)
+my_projections <- projections_table(my_scrape)
 
-  my_projections <- my_projections %>% add_ecr() %>% add_risk() %>%
+my_projections <- my_projections %>% add_ecr() %>% add_risk() %>%
     add_adp() %>% add_aav()
 
-  my_projections <- my_projections %>% add_player_info()
+my_projections <- my_projections %>% add_player_info()
 
-  # creates a file with season and week in the name
-  file_name = paste(season, "season-week", week, "-projections.csv", sep = "")
-  write.csv(my_projections, file=file.path("/usr/local/src/data", file_name), row.names=FALSE)
-
-  week = week + 1
-}
-
-
-
+# creates a file with season and week in the name
+file_name = paste(season, "season-week", week, "-projections.csv", sep = "")
+write.csv(my_projections, file=file.path("/usr/local/src/data", file_name), row.names=FALSE)
